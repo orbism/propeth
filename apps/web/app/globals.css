@@ -28,6 +28,9 @@ body {
   margin: 0;
 }
 
+/* Utility to force padding through global reset when needed */
+.force-pad-3em { padding: 3em !important; }
+
 html,
 body {
   max-width: 100vw;
@@ -56,4 +59,24 @@ button {
 @keyframes blink {
   0%, 90.9% { opacity: 1; }
   91%, 100% { opacity: 0; }
+}
+
+/* Jacquard 12 font for all text */
+.jacquard-12 {
+  font-family: "Jacquard 12", system-ui;
+}
+
+.larger {
+  font-size: 1.8em !important;
+}
+.largest {
+  font-size: 2.1em !important;
+}
+
+/* Global hover glow for all interactive elements */
+a:hover,
+button:hover {
+  color: #d9cda9;
+  text-shadow: 0 0 8px #d9cda9;
+  transition: all 0.3s ease;
 }

@@ -68,7 +68,7 @@ export function Triptych({ cardIds, onContinue }: TriptychProps) {
               className="w-72 h-96 border-4 border-white/80 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center relative"
             >
               {/* Card Frame Corner Decorations */}
-              <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute inset-0 pointer-events-none backdrop-blur-sm">
                 <div className="absolute top-2 left-2 w-8 h-8 border-l-2 border-t-2 border-white/60"></div>
                 <div className="absolute top-2 right-2 w-8 h-8 border-r-2 border-t-2 border-white/60"></div>
                 <div className="absolute bottom-2 left-2 w-8 h-8 border-l-2 border-b-2 border-white/60"></div>

@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useAccount, useReadContract } from 'wagmi';
+import { useEffect, useRef, useState } from 'react';
+import { useAccount, useSwitchChain } from 'wagmi';
+import { mainnet } from 'wagmi/chains';
 import { useAppStore } from '@/lib/store';
-import Image from 'next/image';
+import { ModalFrame } from '@/components/ui/ModalFrame';
 
 interface TokenCheckModalProps {
   isOpen: boolean;
@@ -11,106 +12,123 @@ interface TokenCheckModalProps {
 }
 
 export function TokenCheckModal({ isOpen, onComplete }: TokenCheckModalProps) {
-  const { address } = useAccount();
-  const { setPromiseHolderStatus, setCurrentStep } = useAppStore();
+  const { address, chain } = useAccount();
+  const { switchChain } = useSwitchChain();
+  const setPromiseHolderStatus = useAppStore((s) => s.setPromiseHolderStatus);
   const [isChecking, setIsChecking] = useState(true);
-
-  // Promise token contract address and token ID
-  const PROMISE_CONTRACT = '0x2eaa8c468aa638c88bd704e3a2b03d9926f0b397';
-  const PROMISE_TOKEN_ID = 3n;
-
-  // Check balance of Promise token
-  const { data: balance, isLoading } = useReadContract({
-    address: PROMISE_CONTRACT as `0x${string}`,
-    abi: [
-      {
-        type: 'function',
-        name: 'balanceOf',
-        inputs: [
-          { name: 'account', type: 'address' },
-          { name: 'id', type: 'uint256' },
-        ],
-        outputs: [{ name: '', type: 'uint256' }],
-        stateMutability: 'view',
-      },
-    ],
-    functionName: 'balanceOf',
-    args: [address!, PROMISE_TOKEN_ID],
-    enabled: !!address && isOpen,
-  });
+  const [statusMessage, setStatusMessage] = useState('Looking for A Promise...');
+  const [needsNetworkSwitch, setNeedsNetworkSwitch] = useState(false);
+  const alreadyHandledRef = useRef(false);
 
   useEffect(() => {
-    if (isOpen && !isLoading && balance !== undefined) {
+    if (!isOpen || alreadyHandledRef.current || !address) return;
+
+    console.log('🎰 [TokenCheckModal] Starting check', {
+      address,
+      chain: chain?.name,
+      chainId: chain?.id,
+      isMainnet: chain?.id === mainnet.id,
+    });
+
+    // Check if user is on mainnet
+    if (chain?.id !== mainnet.id) {
+      console.warn('⚠️  [TokenCheckModal] User not on mainnet, prompting switch');
+      setNeedsNetworkSwitch(true);
+      setStatusMessage('Please switch to Ethereum Mainnet');
       setIsChecking(false);
-
-      // Check if user has at least 1 Promise token
-      const hasPromise = balance > 0n;
-      setPromiseHolderStatus(hasPromise);
-
-      // Brief delay to show checking state, then proceed
-      setTimeout(() => {
-        setCurrentStep('mint-choice');
-        onComplete();
-      }, 1000);
+      return;
     }
-  }, [isOpen, isLoading, balance, setPromiseHolderStatus, setCurrentStep, onComplete]);
+
+    setNeedsNetworkSwitch(false);
+    alreadyHandledRef.current = true;
+
+    const checkHoldings = async () => {
+      try {
+        console.log('📡 [TokenCheckModal] Calling /api/holds', { address });
+        setStatusMessage('Checking with oracles...');
+
+        const response = await fetch(`/api/holds?owner=${address}`);
+        const data = await response.json();
+
+        console.log('📦 [TokenCheckModal] API response', data);
+
+        if (!response.ok) {
+          console.error('❌ [TokenCheckModal] API error', data);
+          setPromiseHolderStatus(false);
+          setStatusMessage('Check failed, proceeding anyway...');
+          setTimeout(() => onComplete(), 1000);
+          return;
+        }
+
+        const hasPromise = data.holds === true;
+        console.log('✅ [TokenCheckModal] Holdings check complete', {
+          holds: hasPromise,
+          balance: data.balance,
+          debug: data.debug,
+        });
+
+        setPromiseHolderStatus(hasPromise);
+        setStatusMessage(hasPromise ? '✓ Found A Promise!' : 'No Promise found');
+        setIsChecking(false);
+
+        setTimeout(() => onComplete(), 800);
+      } catch (error: any) {
+        console.error('💥 [TokenCheckModal] Unexpected error', {
+          error: error.message,
+          stack: error.stack,
+        });
+        setPromiseHolderStatus(false);
+        setStatusMessage('Check failed, proceeding anyway...');
+        setTimeout(() => onComplete(), 1000);
+      }
+    };
+
+    checkHoldings();
+  }, [isOpen, address, chain, setPromiseHolderStatus, onComplete]);
+
+  const handleSwitchNetwork = () => {
+    console.log('🔄 [TokenCheckModal] User requested network switch to mainnet');
+    if (switchChain) {
+      switchChain({ chainId: mainnet.id });
+      // Reset to allow re-check after switch
+      alreadyHandledRef.current = false;
+      setIsChecking(true);
+      setStatusMessage('Looking for A Promise...');
+    }
+  };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
-      <div className="bg-black border-4 border-white text-white p-8 max-w-md w-full text-center">
-        {/* Decorative Frame Corners */}
-        <div className="absolute inset-0 pointer-events-none">
-          <Image
-            src="/images/frame_tl.png"
-            alt=""
-            width={100}
-            height={100}
-            className="absolute top-0 left-0"
-          />
-          <Image
-            src="/images/frame_tr.png"
-            alt=""
-            width={100}
-            height={100}
-            className="absolute top-0 right-0"
-          />
-          <Image
-            src="/images/frame_bl.png"
-            alt=""
-            width={100}
-            height={100}
-            className="absolute bottom-0 left-0"
-          />
-          <Image
-            src="/images/frame_br.png"
-            alt=""
-            width={100}
-            height={100}
-            className="absolute bottom-0 right-0"
-          />
-        </div>
+    <ModalFrame isOpen={isOpen}>
+      <div className="text-center">
+        <div className="text-3xl font-bold mb-6 jacquard-12">Checking your fate...</div>
 
-        <div className="relative z-10">
-          <div className="text-2xl font-bold mb-6">Checking your fate...</div>
-
-          {isChecking ? (
-            <div className="flex flex-col items-center space-y-4">
-              <div className="animate-spin text-4xl">⟳</div>
-              <div className="text-lg">Looking for A Promise...</div>
-            </div>
-          ) : (
-            <div className="text-lg">
-              {balance && balance > 0n ? (
-                <div className="text-green-400">✓ Found A Promise!</div>
-              ) : (
-                <div className="text-yellow-400">No Promise found</div>
-              )}
-            </div>
-          )}
-        </div>
+        {needsNetworkSwitch ? (
+          <div className="flex flex-col items-center space-y-6">
+            <div className="text-yellow-400 text-3xl jacquard-12">{statusMessage}</div>
+            <button
+              onClick={handleSwitchNetwork}
+              className="px-8 py-4 text-3xl border-2 border-white text-white hover:bg-white hover:text-black transition-all duration-300 jacquard-12"
+            >
+              Switch to Mainnet
+            </button>
+          </div>
+        ) : isChecking ? (
+          <div className="flex flex-col items-center space-y-4">
+            <div className="animate-spin text-4xl">⟳</div>
+            <div className="text-3xl jacquard-12">{statusMessage}</div>
+          </div>
+        ) : (
+          <div className="text-lg">
+            {statusMessage.includes('✓') ? (
+              <div className="text-green-400 jacquard-12 text-3xl">{statusMessage}</div>
+            ) : (
+              <div className="text-yellow-400 jacquard-12 text-3xl">{statusMessage}</div>
+            )}
+          </div>
+        )}
       </div>
-    </div>
+    </ModalFrame>
   );
 }

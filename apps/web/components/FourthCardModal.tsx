@@ -98,7 +98,7 @@ export function FourthCardModal({ isOpen, onClose, cardIds }: FourthCardModalPro
     <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
       <div className="bg-black border-4 border-white text-white p-8 max-w-2xl w-full">
         {/* Decorative Frame Corners */}
-        <div className="absolute inset-0 pointer-events-none">
+        <div className=" backdrop-blur-sm">
           <Image
             src="/images/frame_tl.png"
             alt=""
@@ -133,7 +133,7 @@ export function FourthCardModal({ isOpen, onClose, cardIds }: FourthCardModalPro
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-3xl font-bold">The Final Revelation</h2>
             <button onClick={onClose} className="text-4xl hover:opacity-70">
-              ×
+              <span className="largest">×</span>
             </button>
           </div>
 

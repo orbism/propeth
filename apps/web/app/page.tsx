@@ -33,6 +33,7 @@ export default function Home() {
 
   const handleTokenCheckComplete = () => {
     setShowTokenCheck(false);
+    setShowChoiceModal(true);
   };
 
   const handleMintChoice = (isPromiseHolder: boolean) => {

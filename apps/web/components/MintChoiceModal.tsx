@@ -2,6 +2,8 @@
 
 import { useAppStore } from '@/lib/store';
 import Image from 'next/image';
+import { OPENSEA_ITEM_URL } from '@/lib/env';
+import { ModalFrame } from '@/components/ui/ModalFrame';
 
 interface MintChoiceModalProps {
   isOpen: boolean;
@@ -19,60 +21,24 @@ export function MintChoiceModal({ isOpen, onClose, onProceed }: MintChoiceModalP
   };
 
   return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
-      <div className="bg-black border-4 border-white text-white p-8 max-w-2xl w-full">
-        {/* Decorative Frame Corners */}
-        <div className="absolute inset-0 pointer-events-none">
-          <Image
-            src="/images/frame_tl.png"
-            alt=""
-            width={150}
-            height={150}
-            className="absolute top-0 left-0"
-          />
-          <Image
-            src="/images/frame_tr.png"
-            alt=""
-            width={150}
-            height={150}
-            className="absolute top-0 right-0"
-          />
-          <Image
-            src="/images/frame_bl.png"
-            alt=""
-            width={150}
-            height={150}
-            className="absolute bottom-0 left-0"
-          />
-          <Image
-            src="/images/frame_br.png"
-            alt=""
-            width={150}
-            height={150}
-            className="absolute bottom-0 right-0"
-          />
+    <ModalFrame isOpen={isOpen} onClose={onClose}>
+      <div className="relative z-10">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-5xl jacquard-12">Choose Your Path</h2>
         </div>
 
-        <div className="relative z-10">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold">Choose Your Path</h2>
-            <button onClick={onClose} className="text-4xl hover:opacity-70">
-              ×
-            </button>
-          </div>
-
-          <div className="space-y-8">
+        <div className="space-y-8">
             {isPromiseHolder ? (
-              <div className="text-center p-8 border-2 border-white/50 bg-white/5">
-                <h3 className="text-2xl font-bold mb-4 text-green-400">
+              <div className="text-center p-8 ">
+                <h3 className="text-3xl underline mb-4 text-green-400 !mt-3">
                   You are a keeper of A Promise
                 </h3>
-                <p className="text-lg mb-6">
-                  Click "Burn" below to proceed and receive your fortune from The Great Propeth.
+                <p className="text-3xl relative block !mb-6 !mt-3 ">
+                  Burn your Promise below to proceed and receive your fortune from <br/> The Great Propeth.
                 </p>
-                <div className="text-sm opacity-70 mb-4">
+                <div className="text-2xl opacity-70 mb-4">
                   OpenSea: <a
-                    href="https://opensea.io/item/ethereum/0x2eaa8c468aa638c88bd704e3a2b03d9926f0b397/3"
+                    href={OPENSEA_ITEM_URL}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-400 hover:underline"
@@ -82,7 +48,10 @@ export function MintChoiceModal({ isOpen, onClose, onProceed }: MintChoiceModalP
                 </div>
                 <button
                   onClick={handleProceed}
-                  className="px-12 py-6 text-2xl font-bold border-4 border-white text-white hover:bg-white hover:text-black transition-all duration-300"
+                  className="!px-12 !py-6 !text-5xl blink font-bold border-4 border-white text-white hover:bg-white hover:text-black transition-all duration-300"
+                  style={{
+                    animation: 'blink 0.55s infinite',
+                  }}
                 >
                   Burn
                 </button>
@@ -97,7 +66,7 @@ export function MintChoiceModal({ isOpen, onClose, onProceed }: MintChoiceModalP
                 </p>
                 <div className="text-sm opacity-70 mb-4">
                   <a
-                    href="https://opensea.io/item/ethereum/0x2eaa8c468aa638c88bd704e3a2b03d9926f0b397/3"
+                    href={OPENSEA_ITEM_URL}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-400 hover:underline"
@@ -113,9 +82,8 @@ export function MintChoiceModal({ isOpen, onClose, onProceed }: MintChoiceModalP
                 </button>
               </div>
             )}
-          </div>
         </div>
       </div>
-    </div>
+    </ModalFrame>
   );
 }

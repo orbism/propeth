@@ -16,7 +16,7 @@ export function ChoiceModal({ isOpen, onClose, onBurnRedeem, onMintFresh }: Choi
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">Choose Your Path</h2>
           <button onClick={onClose} className="text-3xl hover:opacity-70">
-            ×
+            <span className="largest">×</span>
           </button>
         </div>
 
