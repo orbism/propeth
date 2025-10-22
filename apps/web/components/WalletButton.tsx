@@ -16,12 +16,9 @@ export function WalletButton() {
 
   if (isConnected && address) {
     return (
-      <button
-        onClick={() => disconnect()}
-        className="px-4 py-2 bg-white text-black border border-black hover:bg-black hover:text-white transition-colors"
-      >
+      <div className="px-4 py-2 border border-white/60 text-white text-sm backdrop-blur-sm">
         {address.slice(0, 6)}...{address.slice(-4)}
-      </button>
+      </div>
     );
   }
 
@@ -29,34 +26,44 @@ export function WalletButton() {
     <>
       <button
         onClick={() => setShowModal(true)}
-        className="px-4 py-2 bg-black text-white border border-black hover:bg-white hover:text-black transition-colors"
+        className="px-6 py-3 border-2 border-white text-white hover:bg-white hover:text-black transition-all duration-300 backdrop-blur-sm"
       >
-        Connect Wallet
+        Connect wallet
       </button>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 max-w-sm w-full mx-4 border-2 border-black">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Connect Wallet</h2>
-              <button
-                onClick={() => setShowModal(false)}
-                className="text-2xl hover:opacity-70"
-              >
-                ×
-              </button>
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-8">
+          <div className="bg-black border-4 border-white p-8 max-w-md w-full relative">
+            {/* Modal Corner Frames */}
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-0 left-0 w-16 h-16 border-l-2 border-t-2 border-white/60"></div>
+              <div className="absolute top-0 right-0 w-16 h-16 border-r-2 border-t-2 border-white/60"></div>
+              <div className="absolute bottom-0 left-0 w-16 h-16 border-l-2 border-b-2 border-white/60"></div>
+              <div className="absolute bottom-0 right-0 w-16 h-16 border-r-2 border-b-2 border-white/60"></div>
             </div>
-            
-            <div className="space-y-2">
-              {connectors.map((connector) => (
+
+            <div className="relative z-10">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-white">Connect Wallet</h2>
                 <button
-                  key={connector.uid}
-                  onClick={() => handleConnect(connector)}
-                  className="w-full px-4 py-3 border border-black hover:bg-black hover:text-white transition-colors text-left"
+                  onClick={() => setShowModal(false)}
+                  className="text-3xl text-white hover:opacity-70"
                 >
-                  {connector.name}
+                  ×
                 </button>
-              ))}
+              </div>
+
+              <div className="space-y-4">
+                {connectors.map((connector) => (
+                  <button
+                    key={connector.uid}
+                    onClick={() => handleConnect(connector)}
+                    className="w-full px-6 py-4 border-2 border-white text-white hover:bg-white hover:text-black transition-all duration-300 text-left"
+                  >
+                    {connector.name}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
