@@ -19,34 +19,43 @@ export function FourthCardModal({ isOpen, onClose, cardIds }: FourthCardModalPro
   const [ownsCards, setOwnsCards] = useState(false);
 
   // Check if user owns all 3 cards
-  const { data: balance1 } = useReadContract({
-    address: PACK1155_ADDRESS,
-    abi: PACK1155_ABI,
-    functionName: 'balanceOf',
-    args: [address!, cardIds[0]],
-    enabled: !!address && isOpen,
-  });
+  const { data: balance1 } = useReadContract(
+    address && isOpen
+      ? {
+          address: PACK1155_ADDRESS,
+          abi: PACK1155_ABI,
+          functionName: 'balanceOf',
+          args: [address!, cardIds[0]],
+        }
+      : undefined
+  );
 
-  const { data: balance2 } = useReadContract({
-    address: PACK1155_ADDRESS,
-    abi: PACK1155_ABI,
-    functionName: 'balanceOf',
-    args: [address!, cardIds[1]],
-    enabled: !!address && isOpen,
-  });
+  const { data: balance2 } = useReadContract(
+    address && isOpen
+      ? {
+          address: PACK1155_ADDRESS,
+          abi: PACK1155_ABI,
+          functionName: 'balanceOf',
+          args: [address!, cardIds[1]],
+        }
+      : undefined
+  );
 
-  const { data: balance3 } = useReadContract({
-    address: PACK1155_ADDRESS,
-    abi: PACK1155_ABI,
-    functionName: 'balanceOf',
-    args: [address!, cardIds[2]],
-    enabled: !!address && isOpen,
-  });
+  const { data: balance3 } = useReadContract(
+    address && isOpen
+      ? {
+          address: PACK1155_ADDRESS,
+          abi: PACK1155_ABI,
+          functionName: 'balanceOf',
+          args: [address!, cardIds[2]],
+        }
+      : undefined
+  );
 
   useEffect(() => {
     if (isOpen && balance1 !== undefined && balance2 !== undefined && balance3 !== undefined) {
       setIsVerifying(false);
-      const ownsAllCards = balance1 > 0n && balance2 > 0n && balance3 > 0n;
+      const ownsAllCards = balance1 > BigInt(0) && balance2 > BigInt(0) && balance3 > BigInt(0);
       setOwnsCards(ownsAllCards);
     }
   }, [isOpen, balance1, balance2, balance3]);
@@ -75,7 +84,7 @@ export function FourthCardModal({ isOpen, onClose, cardIds }: FourthCardModalPro
       if (log) {
         // In production, you'd decode the event log properly
         // For now, we'll use a placeholder
-        setFortuneTokenId(1n); // TODO: decode from log
+        setFortuneTokenId(BigInt(1)); // TODO: decode from log
         setFortuneTxHash(fortuneHash || null);
       }
     }
