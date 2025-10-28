@@ -1,16 +1,17 @@
 import { createPublicClient, http } from 'viem';
 import { mainnet } from 'viem/chains';
+import { NextRequest } from 'next/server';
 import { FORTUNE721_ABI } from '@/lib/contracts';
 
 const FORTUNE721_ADDRESS = process.env.NEXT_PUBLIC_FORTUNE721 as `0x${string}`;
 const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || 'http://localhost:8545';
 
 export async function GET(
-  request: Request,
-  { params }: { params: { tokenId: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ tokenId: string }> }
 ) {
   try {
-    const { tokenId } = params;
+    const { tokenId } = await params;
 
     // Create viem client
     const client = createPublicClient({
