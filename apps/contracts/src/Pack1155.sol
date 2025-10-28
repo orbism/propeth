@@ -183,8 +183,9 @@ contract Pack1155 is ERC1155, ERC2981, Ownable, Pausable, ReentrancyGuard {
         for (uint256 i = 0; i < PACK_SIZE; i++) {
             uint256 attempts = 0;
             uint256 id;
+            bool isDuplicate;
 
-            // Rejection sampling to avoid supply exhaustion
+            // Rejection sampling to avoid supply exhaustion and duplicates
             while (attempts < 100) {
                 // Use randomness source with position-specific salt
                 bytes32 salt = keccak256(abi.encodePacked(entropy, i, attempts));
@@ -193,7 +194,19 @@ contract Pack1155 is ERC1155, ERC2981, Ownable, Pausable, ReentrancyGuard {
 
                 // Check if ID is available
                 if (maxSupply[id] == 0 || totalMinted[id] < maxSupply[id]) {
-                    break;
+                    // Check for duplicates within this pack
+                    isDuplicate = false;
+                    for (uint256 j = 0; j < i; j++) {
+                        if (ids[j] == id) {
+                            isDuplicate = true;
+                            break;
+                        }
+                    }
+                    
+                    // If no duplicate, we found a valid card
+                    if (!isDuplicate) {
+                        break;
+                    }
                 }
 
                 attempts++;

@@ -2,78 +2,40 @@
 
 import { useState } from 'react';
 import { useAccount } from 'wagmi';
-import { WalletButton } from './WalletButton';
+import { WalletButton } from '../WalletButton';
 import { ModalFrame } from '@/components/ui/ModalFrame';
+import { useAppStore } from '@/lib/store';
+import { useCheckExistingProgress } from '@/lib/hooks/useCheckExistingProgress';
 import Image from 'next/image';
 
-interface LandingPageProps {
-  onInsertCoin: () => void;
-}
-
-export function LandingPage({ onInsertCoin }: LandingPageProps) {
+export function LandingContent() {
   const { isConnected } = useAccount();
+  const { setCurrentStep } = useAppStore();
+  const { checkProgress } = useCheckExistingProgress();
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [forceWalletOpen, setForceWalletOpen] = useState(false);
 
-  const handleInsertCoin = () => {
+  const handleInsertCoin = async () => {
     if (!isConnected) {
-      // Prompt wallet selection modal explicitly
       setForceWalletOpen(true);
       return;
     }
-    onInsertCoin();
+    
+    console.log('[LandingContent] Insert coin clicked, checking existing progress...');
+    const result = await checkProgress();
+    
+    console.log('[LandingContent] Progress check result:', result);
+    
+    if (result === 'none') {
+      console.log('[LandingContent] No existing progress, showing token check');
+      setCurrentStep('token-check');
+    }
   };
 
   return (
-    <div className="min-h-screen bg-black text-white relative overflow-hidden">
-      {/* Background Video */}
-      <video
-        autoPlay
-        muted
-        loop
-        className="absolute inset-0 w-full h-full object-cover z-0"
-      >
-        <source src="/video/hero.mp4" type="video/mp4" />
-      </video>
-
-      {/* Dark overlay */}
-      <div className="absolute inset-0 bg-black/60 z-10"></div>
-
-      {/* Content Area - Exactly 1200px x 666px, vertically centered in viewport */}
-      <div className="relative z-20 flex items-center justify-center p-8 h-screen">
+    <>
+      <div className="flex items-center justify-center min-h-screen p-8">
         <div className="w-[1200px] h-[666px] relative flex items-center justify-center">
-          {/* Decorative Frame Corners - fills entire 1200x666 container */}
-          <div className="absolute inset-0 pointer-events-none ">
-            <Image
-              src="/images/frame_tl.png"
-              alt=""
-              width={200}
-              height={200}
-              className="absolute top-0 left-0"
-            />
-            <Image
-              src="/images/frame_tr.png"
-              alt=""
-              width={200}
-              height={200}
-              className="absolute top-0 right-0"
-            />
-            <Image
-              src="/images/frame_bl.png"
-              alt=""
-              width={200}
-              height={200}
-              className="absolute bottom-0 left-0"
-            />
-            <Image
-              src="/images/frame_br.png"
-              alt=""
-              width={200}
-              height={200}
-              className="absolute bottom-0 right-0"
-            />
-          </div>
-
           {/* Top Right - Connect Wallet Button */}
           <div className="absolute top-16 right-16 z-30">
             <WalletButton
@@ -105,10 +67,10 @@ export function LandingPage({ onInsertCoin }: LandingPageProps) {
               />
             </div>
 
-            {/* Blinking Insert Coin Text - Always blinking */}
+            {/* Blinking Insert Coin Text */}
             <button
               onClick={handleInsertCoin}
-              className="text-6xl font-bold transition-all duration-500  cursor-pointer text-white jacquard-12"
+              className="text-6xl font-bold transition-all duration-500 cursor-pointer text-white jacquard-12"
               style={{
                 animation: 'blink 2s infinite',
                 marginTop: '2.5em',
@@ -122,8 +84,8 @@ export function LandingPage({ onInsertCoin }: LandingPageProps) {
 
       {/* Info Modal */}
       <ModalFrame isOpen={showInfoModal} onClose={() => setShowInfoModal(false)}>
-        <h2 className="text-4xl font-bold mb-12 text-center">About The Great Propeth</h2>
-        <div className="text-xl space-y-8 text-left leading-relaxed px-4">
+        <h2 className="!text-5xl mb-8 !pb-2 text-center">About The Great Propeth</h2>
+        <div className="font-regular text-xl !space-y-6 text-left mx-auto">
           <p>
             The Great Propeth is an ancient mystical entity that has gazed into the infinite
             void and returned with visions of what may come to pass.
@@ -136,11 +98,11 @@ export function LandingPage({ onInsertCoin }: LandingPageProps) {
             Each fortune is composed of three mystical cards that form a unique narrative,
             culminating in the fourth card that reveals the complete prophecy.
           </p>
-          <p className="text-lg opacity-70 mt-12 text-right">
+          <p className="text-xl opacity-70 mt-6 text-right">
             Built on Ethereum. Powered by mysticism and mathematics.
           </p>
         </div>
       </ModalFrame>
-    </div>
+    </>
   );
 }

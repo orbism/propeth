@@ -71,6 +71,37 @@ h2, h3 {
   91%, 100% { opacity: 0; }
 }
 
+/* Fade animations for content transitions */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out forwards;
+}
+
+.fade-out {
+  animation: fadeOut 0.3s ease-in-out forwards;
+}
+
+.fade-transition {
+  transition: opacity 0.3s ease-in-out;
+}
+
 /* Jacquard 12 font for all text */
 .jacquard-12 {
   font-family: "Jacquard 12", system-ui;

@@ -8,9 +8,9 @@ export function RestartButton() {
   return (
     <button
       onClick={reset}
-      className="px-8 py-3 border border-white hover:bg-white hover:text-black transition-colors"
+      className="!text-2xl px-8 py-3 border border-white hover:bg-white hover:text-black transition-colors"
     >
-      Start Over
+      start over
     </button>
   );
 }

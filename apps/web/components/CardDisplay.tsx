@@ -55,31 +55,17 @@ export function CardDisplay({ cardId, metadataUri }: CardDisplayProps) {
   const videoUrl = metadata.animation_url.replace('ipfs://', 'https://ipfs.io/ipfs/');
 
   return (
-    <div className="w-72 h-96 border-4 border-black bg-black/60 backdrop-blur-sm flex flex-col relative overflow-hidden">
-      {/* Card Frame Corner Decorations */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-2 left-2 w-8 h-8 border-l-2 border-t-2 border-white/60"></div>
-        <div className="absolute top-2 right-2 w-8 h-8 border-r-2 border-t-2 border-white/60"></div>
-        <div className="absolute bottom-2 left-2 w-8 h-8 border-l-2 border-b-2 border-white/60"></div>
-        <div className="absolute bottom-2 right-2 w-8 h-8 border-r-2 border-b-2 border-white/60"></div>
-      </div>
-
-      {/* Video Background */}
+    <div className="w-80 h-[424px] border-4 border-black bg-black/60 backdrop-blur-sm flex flex-col relative overflow-hidden">
+      {/* Video Background - Full Card */}
       <video
         autoPlay
         muted
         loop
         playsInline
-        className="absolute inset-0 w-full h-full object-cover"
+        className="w-full h-full object-cover"
       >
         <source src={videoUrl} type="video/mp4" />
       </video>
-
-      {/* Content Overlay */}
-      <div className="relative z-10 flex flex-col justify-end h-full p-4 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
-        <h3 className="text-2xl font-bold text-white mb-2">{metadata.name}</h3>
-        <p className="text-sm text-white/80 line-clamp-3">{metadata.description}</p>
-      </div>
     </div>
   );
 }

@@ -12,8 +12,8 @@ export function ModalFrame({ isOpen, onClose, children }: ModalFrameProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-8">
-      <div className="bg-transparent max-w-md w-full relative" style={{ padding: '3em' }}>
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-transparent max-w-4xl w-full relative" style={{ padding: '3em' }}>
         {/* Modal Corner Frames */}
         <div className="absolute inset-0 pointer-events-none backdrop-blur-sm">
           <Image src="/images/frame_tl.png" alt="" width={100} height={100} className="absolute top-0 left-0" />
