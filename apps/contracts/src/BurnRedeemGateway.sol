@@ -58,8 +58,8 @@ contract BurnRedeemGateway is Ownable, ReentrancyGuard, Pausable {
         // Burn the token via adapter
         adapter.burnFor(msg.sender, tokenId, amount);
 
-        // Mint pack to user (free)
-        pack.mintPack{value: 0}(msg.sender);
+        // Mint pack to user (free - gateway privilege)
+        pack.mintPackFree(msg.sender);
 
         emit BurnedForPack(msg.sender, collection, tokenId, amount);
     }

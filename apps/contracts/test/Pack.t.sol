@@ -84,6 +84,35 @@ contract Pack1155Test is Test {
         pack.mintPack{value: PRICE_PER_PACK}(user1);
     }
 
+    function testMintPackBalanceVerification() public {
+        vm.deal(user1, 1 ether);
+        
+        // Check balances before minting (should be 0)
+        for (uint256 i = 0; i < MAX_CARD_ID; i++) {
+            assertEq(pack.balanceOf(user1, i), 0, "Balance should start at 0");
+        }
+
+        vm.prank(user1);
+        uint256[3] memory ids = pack.mintPack{value: PRICE_PER_PACK}(user1);
+
+        // Immediately verify balances after minting
+        for (uint256 i = 0; i < 3; i++) {
+            uint256 balance = pack.balanceOf(user1, ids[i]);
+            assertEq(balance, 1, "Balance should be exactly 1 immediately after mint");
+            
+            // Also verify totalMinted increased
+            assertGe(pack.totalMinted(ids[i]), 1, "totalMinted should increase");
+        }
+
+        // Verify other cards still have 0 balance
+        for (uint256 i = 0; i < MAX_CARD_ID; i++) {
+            bool isInPack = (i == ids[0] || i == ids[1] || i == ids[2]);
+            if (!isInPack) {
+                assertEq(pack.balanceOf(user1, i), 0, "Non-minted cards should have 0 balance");
+            }
+        }
+    }
+
     function testMintMultiplePacks() public {
         vm.deal(user1, 1 ether);
 

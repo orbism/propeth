@@ -110,7 +110,7 @@ export function LandingPage({ onInsertCoin }: LandingPageProps) {
               onClick={handleInsertCoin}
               className="text-6xl font-bold transition-all duration-500  cursor-pointer text-white jacquard-12"
               style={{
-                animation: 'blink 0.55s infinite',
+                animation: 'blink 2s infinite',
                 marginTop: '2.5em',
               }}
             >

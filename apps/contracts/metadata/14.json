@@ -1,0 +1,12 @@
+{
+  "name": "Whisper",
+  "description": "Even frozen words find their voice in spring.",
+  "image": "ipfs://bafybeibtehzcyn5rldbc7rqnb3erf6wrqvftub5rmclpmwh2kf7zby77qm",
+  "animation_url": "ipfs://bafybeibtehzcyn5rldbc7rqnb3erf6wrqvftub5rmclpmwh2kf7zby77qm",
+  "attributes": [
+    {
+      "trait_type": "Card",
+      "value": "Whisper"
+    }
+  ]
+}

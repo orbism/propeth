@@ -1,0 +1,12 @@
+{
+  "name": "Veil",
+  "description": "When day returns, the veil comes down.",
+  "image": "ipfs://bafybeihaxcz6ean7os63r67mdp6rjbobb2ghymoquult33tygrcwz42dfa",
+  "animation_url": "ipfs://bafybeihaxcz6ean7os63r67mdp6rjbobb2ghymoquult33tygrcwz42dfa",
+  "attributes": [
+    {
+      "trait_type": "Card",
+      "value": "Veil"
+    }
+  ]
+}

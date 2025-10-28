@@ -1,0 +1,12 @@
+{
+  "name": "Suspicion",
+  "description": "Suspicion cuts deeper than truth",
+  "image": "ipfs://bafybeicyobabykjrudz4ild37ahtbp2cazezrh3jql56pw2tjlllba7zxa",
+  "animation_url": "ipfs://bafybeicyobabykjrudz4ild37ahtbp2cazezrh3jql56pw2tjlllba7zxa",
+  "attributes": [
+    {
+      "trait_type": "Card",
+      "value": "Suspicion"
+    }
+  ]
+}

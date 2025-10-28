@@ -5,7 +5,7 @@ libs = ["lib"]
 solc = "0.8.26"
 optimizer = true
 optimizer_runs = 200
-via_ir = false
+via_ir = true
 
 # EVM version
 evm_version = "cancun"
@@ -28,6 +28,9 @@ fail_on_revert = true
 
 # Gas reports
 gas_reports = ["*"]
+
+# File system permissions for scripts
+fs_permissions = [{ access = "read-write", path = "deployments" }]
 
 # RPC endpoints
 [rpc_endpoints]

@@ -26,14 +26,14 @@ export function ModalFrame({ isOpen, onClose, children }: ModalFrameProps) {
           <button
             type="button"
             onClick={onClose}
-            className="absolute top-2 right-2 text-6xl text-white hover:opacity-70 z-50"
+            className="absolute top-2 right-2 !text-2xl !text-red-500 hover:opacity-70 hover:text-red-300 z-50 jacquard-12 !mt-3 !mr-8"
             aria-label="Close"
           >
-            <span className="largest">x</span>
+            close
           </button>
         )}
 
-        <div className="relative z-10 px-8 py-8 text-white jacquard-12">{children}</div>
+        <div className="relative z-10 px-8 py-8 !pt-6 text-white jacquard-12">{children}</div>
       </div>
     </div>
   );

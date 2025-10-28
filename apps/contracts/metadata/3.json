@@ -1,0 +1,12 @@
+{
+  "name": "Tension",
+  "description": "Tension is the cost of becoming",
+  "image": "ipfs://bafybeig2xwxtw6md2kwvov3wqknp25tysl6ie7uwfjrmfu2pj6k3en7lm4",
+  "animation_url": "ipfs://bafybeig2xwxtw6md2kwvov3wqknp25tysl6ie7uwfjrmfu2pj6k3en7lm4",
+  "attributes": [
+    {
+      "trait_type": "Card",
+      "value": "Tension"
+    }
+  ]
+}

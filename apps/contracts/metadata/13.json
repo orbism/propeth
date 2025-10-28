@@ -1,0 +1,12 @@
+{
+  "name": "Anchor",
+  "description": "Cut the anchors, tomorrow is waiting.",
+  "image": "ipfs://bafybeig4ib5akmfr2rhdughgtpmorzgioozptfcmckq6zgjieav7aneuje",
+  "animation_url": "ipfs://bafybeig4ib5akmfr2rhdughgtpmorzgioozptfcmckq6zgjieav7aneuje",
+  "attributes": [
+    {
+      "trait_type": "Card",
+      "value": "Anchor"
+    }
+  ]
+}

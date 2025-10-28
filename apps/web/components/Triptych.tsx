@@ -1,13 +1,25 @@
 'use client';
 
 import Image from 'next/image';
+import { CardDisplay } from './CardDisplay';
+import { useReadContract } from 'wagmi';
+import { PACK1155_ADDRESS, PACK1155_ABI } from '../lib/contracts';
 
 interface TriptychProps {
   cardIds: readonly [bigint, bigint, bigint];
   onContinue: () => void;
+  hasFortune?: boolean;
 }
 
-export function Triptych({ cardIds, onContinue }: TriptychProps) {
+export function Triptych({ cardIds, onContinue, hasFortune }: TriptychProps) {
+  
+  // Get the metadata URI from the contract
+  const { data: metadataUri } = useReadContract({
+    address: PACK1155_ADDRESS,
+    abi: PACK1155_ABI,
+    functionName: 'uri',
+    args: [BigInt(0)], // ERC1155 uses same base URI for all tokens
+  });
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
       {/* Background Video */}
@@ -63,34 +75,31 @@ export function Triptych({ cardIds, onContinue }: TriptychProps) {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
           {cardIds.map((id, index) => (
-            <div
-              key={index}
-              className="w-72 h-96 border-4 border-white/80 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center relative"
-            >
-              {/* Card Frame Corner Decorations */}
-              <div className="absolute inset-0 pointer-events-none backdrop-blur-sm">
-                <div className="absolute top-2 left-2 w-8 h-8 border-l-2 border-t-2 border-white/60"></div>
-                <div className="absolute top-2 right-2 w-8 h-8 border-r-2 border-t-2 border-white/60"></div>
-                <div className="absolute bottom-2 left-2 w-8 h-8 border-l-2 border-b-2 border-white/60"></div>
-                <div className="absolute bottom-2 right-2 w-8 h-8 border-r-2 border-b-2 border-white/60"></div>
-              </div>
-
-              <div className="text-center p-4 relative z-10">
-                <div className="text-6xl mb-6 opacity-80">🂠</div>
-                <div className="text-xl font-bold mb-2">Card #{id.toString()}</div>
-                <div className="text-sm opacity-70">
-                  {index === 0 ? 'The End' : index === 1 ? 'Eclipse' : 'Suspicion'}
+            metadataUri ? (
+              <CardDisplay 
+                key={index} 
+                cardId={id} 
+                metadataUri={metadataUri}
+              />
+            ) : (
+              <div
+                key={index}
+                className="w-72 h-96 border-4 border-white/80 bg-black/60 backdrop-blur-sm flex items-center justify-center"
+              >
+                <div className="text-center">
+                  <div className="text-6xl mb-4 opacity-80">🂠</div>
+                  <div className="text-xl">Card #{id.toString()}</div>
                 </div>
               </div>
-            </div>
+            )
           ))}
         </div>
 
         <button
           onClick={onContinue}
-          className="px-16 py-8 text-2xl font-bold border-4 border-white text-white hover:bg-white hover:text-black transition-all duration-300 backdrop-blur-sm"
+          className="px-16 py-8 !text-4xl font-bold border-4 border-white text-white hover:bg-white hover:text-black transition-all duration-300 backdrop-blur-sm"
         >
-          What Does it mean?!
+          {hasFortune ? 'You have already received your fortune. Read it again' : 'What Does it mean?!'}
         </button>
       </div>
     </div>

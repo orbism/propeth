@@ -48,23 +48,23 @@ export function MintChoiceModal({ isOpen, onClose, onProceed }: MintChoiceModalP
                 </div>
                 <button
                   onClick={handleProceed}
-                  className="!px-12 !py-6 !text-5xl blink font-bold border-4 border-white text-white hover:bg-white hover:text-black transition-all duration-300"
+                  className="!px-12 !py-6 !text-4xl blink font-bold border-4 border-white text-white hover:bg-white hover:text-black transition-all duration-300"
                   style={{
-                    animation: 'blink 0.55s infinite',
+                    animation: 'blink 1.2s infinite',
                   }}
                 >
-                  Burn
+                  <span className="larger">Burn</span>
                 </button>
               </div>
             ) : (
-              <div className="text-center p-8 border-2 border-white/50 bg-white/5">
-                <h3 className="text-2xl font-bold mb-4 text-yellow-400">
-                  You do not hold A Promise
+              <div className="text-center p-8">
+                <h3 className="text-3xl  mb-4 text-red-400 !m-3">
+                  You do not have A Promise
                 </h3>
-                <p className="text-lg mb-6">
-                  However, you may continue with a fortune by inserting 0.02 Ξ coins.
+                <p className="text-3xl block relative !mb-6 !mt-3">
+                  However, you may continue with a fortune by <br/>inserting 0.02 coins.
                 </p>
-                <div className="text-sm opacity-70 mb-4">
+                <div className="text-2xl opacity-70 mb-4">
                   <a
                     href={OPENSEA_ITEM_URL}
                     target="_blank"
@@ -76,9 +76,12 @@ export function MintChoiceModal({ isOpen, onClose, onProceed }: MintChoiceModalP
                 </div>
                 <button
                   onClick={handleProceed}
-                  className="px-12 py-6 text-2xl font-bold border-4 border-white text-white hover:bg-white hover:text-black transition-all duration-300"
+                  className="!px-12 !py-6 !text-4xl blink font-bold border-4 border-white text-white hover:bg-white hover:text-black transition-all duration-300"
+                  style={{
+                    animation: 'blink 1.2s infinite',
+                  }}
                 >
-                  Continue (0.02 Ξ)
+                  Continue <br/>(0.03 coins)
                 </button>
               </div>
             )}

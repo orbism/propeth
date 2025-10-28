@@ -70,6 +70,11 @@ contract Deploy is Script {
         gateway = new BurnRedeemGateway(address(pack));
         console.log("BurnRedeemGateway deployed at:", address(gateway));
 
+        // 4a. Set gateway in Pack1155 so it can mint for free
+        console.log("\n=== Configuring Gateway Permissions ===");
+        pack.setGateway(address(gateway));
+        console.log("Gateway authorized for free mints");
+
         // 5. Deploy Fortune721
         console.log("\n=== Deploying Fortune721 ===");
         fortune = new Fortune721(fortuneBaseBgCID);
@@ -85,15 +90,19 @@ contract Deploy is Script {
         // 7. Output deployment summary
         _printDeploymentSummary();
 
-        // 8. Save deployment addresses
-        _saveDeploymentAddresses();
+        // 8. Save deployment addresses (skip for local Anvil)
+        if (block.chainid != 1337) {
+            _saveDeploymentAddresses();
+        } else {
+            console.log("\n(Skipping JSON save for local Anvil - addresses printed above)");
+        }
     }
 
     function _loadConfig() internal {
         // Pack1155 config
         baseURI = vm.envOr("BASE_URI", string("ipfs://placeholder/"));
         maxCardId = vm.envOr("MAX_CARD_ID", uint256(15));
-        pricePerPack = vm.envOr("PRICE_PER_PACK_WEI", uint256(0.01 ether));
+        pricePerPack = vm.envOr("PRICE_PER_PACK_WEI", uint256(0.03 ether));
         payoutAddress = vm.envOr("PAYOUT_ADDRESS", msg.sender);
         
         // Royalty config

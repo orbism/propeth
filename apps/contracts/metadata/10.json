@@ -1,0 +1,12 @@
+{
+  "name": "Reflection",
+  "description": "We gaze at the reflection to avoid the flame.",
+  "image": "ipfs://bafybeia3mrrh5gjpsdfhsp6bleaa7atdtljtyzjp5r36e3dseodp7no4p4",
+  "animation_url": "ipfs://bafybeia3mrrh5gjpsdfhsp6bleaa7atdtljtyzjp5r36e3dseodp7no4p4",
+  "attributes": [
+    {
+      "trait_type": "Card",
+      "value": "Reflection"
+    }
+  ]
+}

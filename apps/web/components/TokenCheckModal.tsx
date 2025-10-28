@@ -5,6 +5,7 @@ import { useAccount, useSwitchChain } from 'wagmi';
 import { mainnet } from 'wagmi/chains';
 import { useAppStore } from '@/lib/store';
 import { ModalFrame } from '@/components/ui/ModalFrame';
+import { PROMISE_CHAIN_ID } from '@/lib/env';
 
 interface TokenCheckModalProps {
   isOpen: boolean;
@@ -23,18 +24,25 @@ export function TokenCheckModal({ isOpen, onComplete }: TokenCheckModalProps) {
   useEffect(() => {
     if (!isOpen || alreadyHandledRef.current || !address) return;
 
+    // Get expected chain from env (default to mainnet if not set)
+    const expectedChainId = PROMISE_CHAIN_ID || mainnet.id;
+
     console.log('🎰 [TokenCheckModal] Starting check', {
       address,
       chain: chain?.name,
       chainId: chain?.id,
-      isMainnet: chain?.id === mainnet.id,
+      expectedChainId,
+      match: chain?.id === expectedChainId,
     });
 
-    // Check if user is on mainnet
-    if (chain?.id !== mainnet.id) {
-      console.warn('⚠️  [TokenCheckModal] User not on mainnet, prompting switch');
+    // Check if user is on the correct chain for Promise NFT
+    if (chain?.id !== expectedChainId) {
+      const chainName = expectedChainId === 1337 ? 'Local 8545' : 
+                       expectedChainId === 11155111 ? 'Sepolia' : 
+                       'Ethereum Mainnet';
+      console.warn(`⚠️  [TokenCheckModal] User not on ${chainName}, prompting switch`);
       setNeedsNetworkSwitch(true);
-      setStatusMessage('Please switch to Ethereum Mainnet');
+      setStatusMessage(`Please switch to ${chainName}`);
       setIsChecking(false);
       return;
     }
@@ -87,9 +95,10 @@ export function TokenCheckModal({ isOpen, onComplete }: TokenCheckModalProps) {
   }, [isOpen, address, chain, setPromiseHolderStatus, onComplete]);
 
   const handleSwitchNetwork = () => {
-    console.log('🔄 [TokenCheckModal] User requested network switch to mainnet');
+    const targetChainId = PROMISE_CHAIN_ID || mainnet.id;
+    console.log('🔄 [TokenCheckModal] User requested network switch', { targetChainId });
     if (switchChain) {
-      switchChain({ chainId: mainnet.id });
+      switchChain({ chainId: targetChainId });
       // Reset to allow re-check after switch
       alreadyHandledRef.current = false;
       setIsChecking(true);
@@ -98,6 +107,11 @@ export function TokenCheckModal({ isOpen, onComplete }: TokenCheckModalProps) {
   };
 
   if (!isOpen) return null;
+
+  const targetChainId = PROMISE_CHAIN_ID || mainnet.id;
+  const switchButtonText = targetChainId === 1337 ? 'Switch to Local' : 
+                          targetChainId === 11155111 ? 'Switch to Sepolia' : 
+                          'Switch to Mainnet';
 
   return (
     <ModalFrame isOpen={isOpen}>
@@ -111,7 +125,7 @@ export function TokenCheckModal({ isOpen, onComplete }: TokenCheckModalProps) {
               onClick={handleSwitchNetwork}
               className="px-8 py-4 text-3xl border-2 border-white text-white hover:bg-white hover:text-black transition-all duration-300 jacquard-12"
             >
-              Switch to Mainnet
+              {switchButtonText}
             </button>
           </div>
         ) : isChecking ? (

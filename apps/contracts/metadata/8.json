@@ -1,0 +1,12 @@
+{
+  "name": "Fracture",
+  "description": "Fractured, but never broken",
+  "image": "ipfs://bafybeiak7gt43waaplny73ksvuiil3xuubpcovhaeboi42vk3ghhbcgnr4",
+  "animation_url": "ipfs://bafybeiak7gt43waaplny73ksvuiil3xuubpcovhaeboi42vk3ghhbcgnr4",
+  "attributes": [
+    {
+      "trait_type": "Card",
+      "value": "Fracture"
+    }
+  ]
+}

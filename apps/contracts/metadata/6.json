@@ -1,0 +1,12 @@
+{
+  "name": "Flicker",
+  "description": "You can already see the flicker of what's to come.",
+  "image": "ipfs://bafybeihx2k2tzbfkrlo4stgfla32o5owqxnhngifszjl674zvpw2bsbhiu",
+  "animation_url": "ipfs://bafybeihx2k2tzbfkrlo4stgfla32o5owqxnhngifszjl674zvpw2bsbhiu",
+  "attributes": [
+    {
+      "trait_type": "Card",
+      "value": "Flicker"
+    }
+  ]
+}

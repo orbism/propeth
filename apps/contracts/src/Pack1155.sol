@@ -32,11 +32,17 @@ contract Pack1155 is ERC1155, ERC2981, Ownable, Pausable, ReentrancyGuard {
     /// @notice Entropy epoch for randomness rotation
     uint256 public entropyEpoch;
 
+    /// @notice BurnRedeemGateway address (can mint for free)
+    address public gateway;
+
     /// @notice Maximum supply per card ID (0 = unlimited)
     mapping(uint256 => uint256) public maxSupply;
 
     /// @notice Total minted per card ID
     mapping(uint256 => uint256) public totalMinted;
+
+    /// @notice Tracks if an address has minted a pack
+    mapping(address => bool) public hasMintedPack;
 
     /// @notice Emitted when a pack is minted
     event PackMinted(address indexed to, uint256[3] ids, uint256 packIndex);
@@ -59,6 +65,8 @@ contract Pack1155 is ERC1155, ERC2981, Ownable, Pausable, ReentrancyGuard {
     error InvalidPayoutAddress();
     error InvalidRandomnessSource();
     error WithdrawalFailed();
+    error OnlyGateway();
+    error AlreadyMintedPack();
 
     /**
      * @notice Initializes the Pack1155 contract
@@ -85,7 +93,7 @@ contract Pack1155 is ERC1155, ERC2981, Ownable, Pausable, ReentrancyGuard {
     }
 
     /**
-     * @notice Mints exactly 3 random cards to the recipient
+     * @notice Mints exactly 3 random cards to the recipient (requires payment)
      * @param to Recipient address
      * @return ids Array of 3 minted card IDs
      */
@@ -99,6 +107,37 @@ contract Pack1155 is ERC1155, ERC2981, Ownable, Pausable, ReentrancyGuard {
         if (msg.value < pricePerPack) {
             revert InsufficientPayment(pricePerPack, msg.value);
         }
+
+        return _mintPackInternal(to);
+    }
+
+    /**
+     * @notice Mints exactly 3 random cards for free (only callable by gateway)
+     * @param to Recipient address
+     * @return ids Array of 3 minted card IDs
+     */
+    function mintPackFree(address to) 
+        external 
+        nonReentrant 
+        whenNotPaused 
+        returns (uint256[3] memory ids) 
+    {
+        if (msg.sender != gateway) revert OnlyGateway();
+        
+        return _mintPackInternal(to);
+    }
+
+    /**
+     * @notice Internal function to mint a pack
+     * @param to Recipient address
+     * @return ids Array of 3 minted card IDs
+     */
+    function _mintPackInternal(address to) 
+        internal 
+        returns (uint256[3] memory ids) 
+    {
+        // Check if address has already minted a pack
+        if (hasMintedPack[to]) revert AlreadyMintedPack();
 
         // Generate entropy for this pack
         bytes32 entropy = keccak256(
@@ -128,6 +167,9 @@ contract Pack1155 is ERC1155, ERC2981, Ownable, Pausable, ReentrancyGuard {
         idsDynamic[2] = ids[2];
 
         _mintBatch(to, idsDynamic, amounts, "");
+
+        // Mark address as having minted a pack
+        hasMintedPack[to] = true;
 
         emit PackMinted(to, ids, totalMinted[0] / PACK_SIZE);
     }
@@ -232,6 +274,14 @@ contract Pack1155 is ERC1155, ERC2981, Ownable, Pausable, ReentrancyGuard {
         if (newSource == address(0)) revert InvalidRandomnessSource();
         randomnessSource = IRandomness(newSource);
         emit RandomnessSourceUpdated(newSource);
+    }
+
+    /**
+     * @notice Sets the gateway address that can mint for free
+     * @param newGateway New gateway address
+     */
+    function setGateway(address newGateway) external onlyOwner {
+        gateway = newGateway;
     }
 
     /**

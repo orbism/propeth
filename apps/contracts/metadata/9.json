@@ -1,0 +1,12 @@
+{
+  "name": "Pulse",
+  "description": "Can you hear it?",
+  "image": "ipfs://bafybeicxkseaedgw5yygad2nmaxnyfjrs3wesgvgqqr4fl7aorckub5zti",
+  "animation_url": "ipfs://bafybeicxkseaedgw5yygad2nmaxnyfjrs3wesgvgqqr4fl7aorckub5zti",
+  "attributes": [
+    {
+      "trait_type": "Card",
+      "value": "Pulse"
+    }
+  ]
+}

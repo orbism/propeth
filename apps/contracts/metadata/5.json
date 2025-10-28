@@ -1,0 +1,12 @@
+{
+  "name": "Silence",
+  "description": "Ideas intertwine, mocking each other.",
+  "image": "ipfs://bafybeie443gzjxgf2xtyi6pqe2sf5rd4paegvlrqm6d4oey4eztqckjfpi",
+  "animation_url": "ipfs://bafybeie443gzjxgf2xtyi6pqe2sf5rd4paegvlrqm6d4oey4eztqckjfpi",
+  "attributes": [
+    {
+      "trait_type": "Card",
+      "value": "Silence"
+    }
+  ]
+}

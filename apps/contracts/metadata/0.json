@@ -1,0 +1,12 @@
+{
+  "name": "The End",
+  "description": "Endings echo forward",
+  "image": "ipfs://bafybeibqzyyglitvqcrvfnk2o2n4l37lz6qmfk4xom532kjy2gz7t4vrka",
+  "animation_url": "ipfs://bafybeibqzyyglitvqcrvfnk2o2n4l37lz6qmfk4xom532kjy2gz7t4vrka",
+  "attributes": [
+    {
+      "trait_type": "Card",
+      "value": "The End"
+    }
+  ]
+}
