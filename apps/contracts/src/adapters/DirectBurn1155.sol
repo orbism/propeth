@@ -12,6 +12,8 @@ contract DirectBurn1155 is IBurnAdapter {
     /// @notice Target ERC1155 collection
     IERC1155 public immutable collection;
 
+    error BurnFailed(string reason);
+
     /**
      * @param _collection Address of ERC1155 collection
      */
@@ -30,10 +32,17 @@ contract DirectBurn1155 is IBurnAdapter {
         collection.safeTransferFrom(user, address(this), tokenId, amount, "");
 
         // Call burn on the token (requires burnable interface)
-        (bool success, ) = address(collection).call(
+        (bool success, bytes memory reason) = address(collection).call(
             abi.encodeWithSignature("burn(address,uint256,uint256)", address(this), tokenId, amount)
         );
-        require(success, "Burn failed");
+        
+        if (!success) {
+            // Provide more detailed error information
+            string memory errorMsg = reason.length > 0 
+                ? string(reason) 
+                : "Burn failed: unknown reason";
+            revert BurnFailed(errorMsg);
+        }
     }
 
     /**

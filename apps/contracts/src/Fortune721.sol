@@ -47,6 +47,12 @@ contract Fortune721 is ERC721, ERC2981, Ownable, ReentrancyGuard {
     }
     mapping(uint256 => FortuneData) public fortuneData;
 
+    /// @notice Track last 3 card IDs minted by user (from Pack1155)
+    mapping(address => uint256[3]) public lastThreeCardsMinted;
+
+    /// @notice Track if fortune was created from the last three cards
+    mapping(address => bool) public fortuneCreatedFromLastThree;
+
     /// @notice Emitted when a fortune is minted
     event FortuneMinted(
         address indexed to,
@@ -54,6 +60,9 @@ contract Fortune721 is ERC721, ERC2981, Ownable, ReentrancyGuard {
         uint256[3] cardIds,
         uint256[3] variants
     );
+
+    /// @notice Emitted when user state is reset for new mint pack
+    event UserResetForNewMintPack(address indexed user);
 
     error InvalidCardId(uint256 cardId);
     error DuplicateCardsInTriptych();
@@ -103,6 +112,10 @@ contract Fortune721 is ERC721, ERC2981, Ownable, ReentrancyGuard {
             variant2: variants[1],
             variant3: variants[2]
         });
+
+        // Update user's last three cards and fortune creation status
+        lastThreeCardsMinted[msg.sender] = cardIds;
+        fortuneCreatedFromLastThree[msg.sender] = true;
 
         emit FortuneMinted(msg.sender, tokenId, cardIds, variants);
     }
@@ -302,6 +315,16 @@ contract Fortune721 is ERC721, ERC2981, Ownable, ReentrancyGuard {
      */
     function setRoyalty(address receiver, uint96 feeNumerator) external onlyOwner {
         _setDefaultRoyalty(receiver, feeNumerator);
+    }
+
+    /**
+     * @notice Resets user's fortune creation status (called when new pack is minted)
+     * @dev Pack1155 records lastThreeCardsMinted before calling this
+     * @param user Address to reset
+     */
+    function resetUserState(address user) external {
+        fortuneCreatedFromLastThree[user] = false;
+        emit UserResetForNewMintPack(user);
     }
 
     /**

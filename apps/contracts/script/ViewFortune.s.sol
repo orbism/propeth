@@ -7,7 +7,7 @@ import "../src/Fortune721.sol";
 contract ViewFortune is Script {
     function run() external view {
         // Get the Fortune721 address from env or use default
-        address fortune721Address = vm.envOr("FORTUNE721_ADDRESS", address(0x4b6AB5F819A515382B0dEB6935D793817bB4aF28));
+        address fortune721Address = vm.envOr("FORTUNE721_ADDRESS", address(0x4b6aB5F819A515382B0dEB6935D793817bB4af28));
         
         // Token ID to view (can be passed as env var)
         uint256 tokenId = vm.envOr("TOKEN_ID", uint256(0));

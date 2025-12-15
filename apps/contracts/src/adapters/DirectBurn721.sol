@@ -13,6 +13,7 @@ contract DirectBurn721 is IBurnAdapter {
     IERC721 public immutable collection;
 
     error InvalidAmount();
+    error BurnFailed(string reason);
 
     /**
      * @param _collection Address of ERC721 collection
@@ -34,9 +35,16 @@ contract DirectBurn721 is IBurnAdapter {
         collection.transferFrom(user, address(this), tokenId);
 
         // Call burn on the token (requires burnable interface)
-        (bool success, ) = address(collection).call(
+        (bool success, bytes memory reason) = address(collection).call(
             abi.encodeWithSignature("burn(uint256)", tokenId)
         );
-        require(success, "Burn failed");
+        
+        if (!success) {
+            // Provide more detailed error information
+            string memory errorMsg = reason.length > 0 
+                ? string(reason) 
+                : "Burn failed: unknown reason";
+            revert BurnFailed(errorMsg);
+        }
     }
 }

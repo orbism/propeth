@@ -8,6 +8,11 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
 import "./interfaces/IRandomness.sol";
 
+interface Fortune721Interface {
+    function fortuneCreatedFromLastThree(address user) external view returns (bool);
+    function resetUserState(address user) external;
+}
+
 /**
  * @title Pack1155
  * @notice ERC1155 NFT contract that mints packs of exactly 3 random cards
@@ -35,6 +40,9 @@ contract Pack1155 is ERC1155, ERC2981, Ownable, Pausable, ReentrancyGuard {
     /// @notice BurnRedeemGateway address (can mint for free)
     address public gateway;
 
+    /// @notice Fortune721 contract address (to check if fortune was created)
+    address public fortune721;
+
     /// @notice Maximum supply per card ID (0 = unlimited)
     mapping(uint256 => uint256) public maxSupply;
 
@@ -43,6 +51,9 @@ contract Pack1155 is ERC1155, ERC2981, Ownable, Pausable, ReentrancyGuard {
 
     /// @notice Tracks if an address has minted a pack
     mapping(address => bool) public hasMintedPack;
+
+    /// @notice Tracks the last 3 cards minted for each user
+    mapping(address => uint256[3]) public lastThreeCardsMinted;
 
     /// @notice Emitted when a pack is minted
     event PackMinted(address indexed to, uint256[3] ids, uint256 packIndex);
@@ -59,6 +70,12 @@ contract Pack1155 is ERC1155, ERC2981, Ownable, Pausable, ReentrancyGuard {
     /// @notice Emitted when max supply is set for an ID
     event MaxSupplySet(uint256 indexed id, uint256 maxSupply);
 
+    /// @notice Emitted when gateway address is updated
+    event GatewayUpdated(address indexed newGateway);
+
+    /// @notice Emitted when Fortune721 address is updated
+    event Fortune721Updated(address indexed newFortune721);
+
     error InsufficientPayment(uint256 required, uint256 provided);
     error SupplyExhausted(uint256 id);
     error InvalidCardId(uint256 id);
@@ -67,6 +84,8 @@ contract Pack1155 is ERC1155, ERC2981, Ownable, Pausable, ReentrancyGuard {
     error WithdrawalFailed();
     error OnlyGateway();
     error AlreadyMintedPack();
+    error InvalidGateway();
+    error InvalidFortune721();
 
     /**
      * @notice Initializes the Pack1155 contract
@@ -108,6 +127,20 @@ contract Pack1155 is ERC1155, ERC2981, Ownable, Pausable, ReentrancyGuard {
             revert InsufficientPayment(pricePerPack, msg.value);
         }
 
+        // Check if already minted, allow reset if fortune was created
+        if (hasMintedPack[to]) {
+            if (fortune721 != address(0)) {
+                bool fortuneCreated = _checkFortureCreated(to);
+                if (!fortuneCreated) {
+                    revert AlreadyMintedPack();
+                }
+                // Reset to allow new mint
+                hasMintedPack[to] = false;
+            } else {
+                revert AlreadyMintedPack();
+            }
+        }
+
         return _mintPackInternal(to);
     }
 
@@ -124,6 +157,10 @@ contract Pack1155 is ERC1155, ERC2981, Ownable, Pausable, ReentrancyGuard {
     {
         if (msg.sender != gateway) revert OnlyGateway();
         
+        // For burn/redeem, always allow minting (gateway can override the once-per-user limit)
+        // Reset the pack mint status if they already minted
+        hasMintedPack[to] = false;
+        
         return _mintPackInternal(to);
     }
 
@@ -136,8 +173,10 @@ contract Pack1155 is ERC1155, ERC2981, Ownable, Pausable, ReentrancyGuard {
         internal 
         returns (uint256[3] memory ids) 
     {
-        // Check if address has already minted a pack
-        if (hasMintedPack[to]) revert AlreadyMintedPack();
+        // Simple check - only revert if they haven't had hasMintedPack reset by paid mint or gateway
+        if (hasMintedPack[to]) {
+            revert AlreadyMintedPack();
+        }
 
         // Generate entropy for this pack
         bytes32 entropy = keccak256(
@@ -168,10 +207,43 @@ contract Pack1155 is ERC1155, ERC2981, Ownable, Pausable, ReentrancyGuard {
 
         _mintBatch(to, idsDynamic, amounts, "");
 
+        // Record the last 3 cards minted by this user (for triptych reconstruction on reconnect)
+        lastThreeCardsMinted[to] = ids;
+
+        // Reset fortune flag - new cards haven't had a fortune created yet
+        if (fortune721 != address(0)) {
+            // Use low-level call to reset the flag on Fortune721
+            try Fortune721Interface(fortune721).resetUserState(to) {} catch {}
+        }
+
         // Mark address as having minted a pack
         hasMintedPack[to] = true;
 
         emit PackMinted(to, ids, totalMinted[0] / PACK_SIZE);
+    }
+
+    /**
+     * @notice Checks if fortune was created for a user (via external call)
+     * @param user User address to check
+     * @return fortuneCreated True if fortune was created from last three cards
+     */
+    function _checkFortureCreated(address user) internal view returns (bool) {
+        if (fortune721 == address(0)) return false;
+        
+        // Call Fortune721's public mapping to check if fortune was created
+        // Using try-catch with gas protection to safely handle any issues
+        try Fortune721Interface(fortune721).fortuneCreatedFromLastThree(user) returns (bool created) {
+            return created;
+        } catch Error(string memory) {
+            // Reverted with error message - return false
+            return false;
+        } catch Panic(uint) {
+            // Panic error - return false
+            return false;
+        } catch {
+            // Any other error - return false and allow mint to proceed
+            return false;
+        }
     }
 
     /**
@@ -220,6 +292,16 @@ contract Pack1155 is ERC1155, ERC2981, Ownable, Pausable, ReentrancyGuard {
             ids[i] = id;
             totalMinted[id]++;
         }
+        return ids;
+    }
+
+    /**
+     * @notice Gets the last 3 cards minted for a user
+     * @param user User address
+     * @return Array of 3 card IDs
+     */
+    function getLastThreeCardsMinted(address user) external view returns (uint256[3] memory) {
+        return lastThreeCardsMinted[user];
     }
 
     /**
@@ -294,7 +376,53 @@ contract Pack1155 is ERC1155, ERC2981, Ownable, Pausable, ReentrancyGuard {
      * @param newGateway New gateway address
      */
     function setGateway(address newGateway) external onlyOwner {
+        if (newGateway == address(0)) revert InvalidGateway();
         gateway = newGateway;
+        emit GatewayUpdated(newGateway);
+    }
+
+    /**
+     * @notice User calls this to reset and mint a new pack after fortune creation
+     * @dev Only callable by user who has created a fortune from their last pack
+     */
+    function resetAndMintNewPack() external payable nonReentrant whenNotPaused returns (uint256[3] memory ids) {
+        if (msg.value < pricePerPack) {
+            revert InsufficientPayment(pricePerPack, msg.value);
+        }
+
+        address user = msg.sender;
+        
+        // Check if they previously minted a pack
+        if (!hasMintedPack[user]) {
+            revert AlreadyMintedPack(); // Reuse error: they haven't minted before
+        }
+        
+        // Check if fortune was created (via external call to Fortune721)
+        bool fortuneCreated = false;
+        if (fortune721 != address(0)) {
+            fortuneCreated = _checkFortureCreated(user);
+        }
+        
+        // Only allow reset if fortune was created
+        if (!fortuneCreated) {
+            revert AlreadyMintedPack(); // Not allowed to re-mint without fortune
+        }
+        
+        // Reset their state BEFORE minting new pack
+        hasMintedPack[user] = false;
+        
+        // Now mint the new pack (will set hasMintedPack[user] = true again)
+        return _mintPackInternal(user);
+    }
+
+    /**
+     * @notice Sets the Fortune721 contract address
+     * @param newFortune721 New Fortune721 contract address
+     */
+    function setFortune721(address newFortune721) external onlyOwner {
+        if (newFortune721 == address(0)) revert InvalidFortune721();
+        fortune721 = newFortune721;
+        emit Fortune721Updated(newFortune721);
     }
 
     /**
@@ -330,7 +458,7 @@ contract Pack1155 is ERC1155, ERC2981, Ownable, Pausable, ReentrancyGuard {
     /**
      * @notice Withdraws contract balance to payout address
      */
-    function withdraw() external nonReentrant {
+    function withdraw() external nonReentrant onlyOwner {
         uint256 balance = address(this).balance;
         (bool success, ) = payoutAddress.call{value: balance}("");
         if (!success) revert WithdrawalFailed();

@@ -26,8 +26,10 @@ export function LandingContent() {
     
     console.log('[LandingContent] Progress check result:', result);
     
-    if (result === 'none') {
-      console.log('[LandingContent] No existing progress, showing token check');
+    // Both 'none' (new user) and 'fortune' (completed and reset) go to token-check
+    // 'cards' is handled by checkProgress directly (goes to triptych-display)
+    if (result === 'none' || result === 'fortune') {
+      console.log('[LandingContent] Sending to token-check:', result === 'fortune' ? 'reset' : 'new user');
       setCurrentStep('token-check');
     }
   };

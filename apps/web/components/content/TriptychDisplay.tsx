@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { CardDisplay } from '../CardDisplay';
-import { useReadContract } from 'wagmi';
+import { useReadContract, useAccount, usePublicClient } from 'wagmi';
 import { useAppStore } from '@/lib/store';
 import { PACK1155_ADDRESS, PACK1155_ABI } from '@/lib/contracts';
 
@@ -12,13 +12,19 @@ interface CardMetadata {
 }
 
 interface TriptychDisplayProps {
-  cardIds: readonly [bigint, bigint, bigint];
+  cardIds?: readonly [bigint, bigint, bigint] | null;
   hasFortune?: boolean;
 }
 
-export function TriptychDisplay({ cardIds, hasFortune }: TriptychDisplayProps) {
-  const { setCurrentStep, fortuneTokenId } = useAppStore();
+export function TriptychDisplay({ cardIds: providedCardIds, hasFortune }: TriptychDisplayProps) {
+  const { address } = useAccount();
+  const publicClient = usePublicClient();
+  const { setCurrentStep, fortuneTokenId, setTriptychIds, triptychIds } = useAppStore();
   const [cardMetadata, setCardMetadata] = useState<(CardMetadata | null)[]>([null, null, null]);
+  const [isLoadingCards, setIsLoadingCards] = useState(!providedCardIds && !triptychIds);
+  
+  // Use provided cards or from store
+  const cardIds = providedCardIds || triptychIds;
   
   const { data: metadataUri } = useReadContract({
     address: PACK1155_ADDRESS,
@@ -27,9 +33,58 @@ export function TriptychDisplay({ cardIds, hasFortune }: TriptychDisplayProps) {
     args: [BigInt(0)],
   });
 
+  // Fetch card IDs from contract if not in store
+  useEffect(() => {
+    if (cardIds) return; // Already have cards
+    if (!address || !publicClient) return;
+
+    const fetchCardIds = async () => {
+      try {
+        console.log('[TriptychDisplay] Fetching card IDs from balances for:', address);
+        
+        // Query balances for all 15 cards
+        const balancePromises = Array.from({ length: 15 }, (_, i) =>
+          publicClient.readContract({
+            address: PACK1155_ADDRESS,
+            abi: PACK1155_ABI,
+            functionName: 'balanceOf',
+            args: [address, BigInt(i)],
+          })
+        );
+
+        const balances = await Promise.all(balancePromises);
+        const ownedCards: bigint[] = [];
+        
+        balances.forEach((balance, id) => {
+          if (balance && balance > BigInt(0)) {
+            ownedCards.push(BigInt(id));
+          }
+        });
+
+        console.log('[TriptychDisplay] User owns cards:', ownedCards.map(String));
+
+        // Use the last 3 owned cards (most recently minted)
+        if (ownedCards.length >= 3) {
+          const ids = [ownedCards[ownedCards.length - 3], ownedCards[ownedCards.length - 2], ownedCards[ownedCards.length - 1]] as const;
+          console.log('[TriptychDisplay] Got card IDs:', ids.map(String));
+          setTriptychIds(ids);
+          setIsLoadingCards(false);
+        } else {
+          console.warn('[TriptychDisplay] Not enough owned cards found');
+          setIsLoadingCards(false);
+        }
+      } catch (error) {
+        console.error('[TriptychDisplay] Failed to fetch card IDs:', error);
+        setIsLoadingCards(false);
+      }
+    };
+
+    fetchCardIds();
+  }, [address, publicClient, cardIds, setTriptychIds]);
+
   // Fetch metadata for all three cards
   useEffect(() => {
-    if (!metadataUri) return;
+    if (!metadataUri || !cardIds) return;
 
     const fetchAllMetadata = async () => {
       const metadata: (CardMetadata | null)[] = [null, null, null];
@@ -58,6 +113,16 @@ export function TriptychDisplay({ cardIds, hasFortune }: TriptychDisplayProps) {
       setCurrentStep('fortune-reveal');
     }
   };
+
+  // Loading state while fetching cards
+  if (isLoadingCards || !cardIds) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-8">
+        <div className="animate-spin w-16 h-16 border-4 border-white border-t-transparent rounded-full mx-auto mb-4" />
+        <p className="text-2xl text-white">Loading your fate...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-8">

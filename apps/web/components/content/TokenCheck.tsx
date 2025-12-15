@@ -12,7 +12,7 @@ interface TokenCheckProps {
 
 export function TokenCheck({ onComplete }: TokenCheckProps) {
   const { address, chain } = useAccount();
-  const { setCurrentStep, setPromiseHolderStatus } = useAppStore();
+  const { setCurrentStep, setPromiseHolderStatus, setOwnedTokenIds } = useAppStore();
   const { switchChain } = useSwitchChain();
   const [isChecking, setIsChecking] = useState(true);
   const [statusMessage, setStatusMessage] = useState('Looking for A Promise...');
@@ -72,6 +72,10 @@ export function TokenCheck({ onComplete }: TokenCheckProps) {
         });
 
         setPromiseHolderStatus(hasPromise);
+        if (data.ownedTokens && data.ownedTokens.length > 0) {
+          setOwnedTokenIds(data.ownedTokens);
+          console.log('[TokenCheck] Stored owned token IDs:', data.ownedTokens);
+        }
         setStatusMessage(hasPromise ? '✓ Found A Promise!' : 'No Promise found');
         setIsChecking(false);
 

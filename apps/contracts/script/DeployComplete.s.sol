@@ -7,7 +7,7 @@ import "../src/Fortune721.sol";
 import "../src/BurnRedeemGateway.sol";
 import "../src/mocks/MockRandomness.sol";
 import "../src/mocks/MockERC721.sol";
-import "../src/adapters/DirectBurn721.sol";
+import "../src/adapters/DeadTransfer721.sol";
 
 contract DeployComplete is Script {
     function run() external {
@@ -50,17 +50,22 @@ contract DeployComplete is Script {
         pack.setGateway(address(gateway));
         console.log("Gateway configured on Pack1155");
 
-        // 6. Deploy MockNFT
-        MockERC721 mockNFT = new MockERC721();
-        uint256 tokenId = mockNFT.mint(deployer);
-        console.log("MockNFT deployed: %s (token #%s)", address(mockNFT), tokenId);
+        // 6. Link Fortune721 to Pack1155 for state checking
+        pack.setFortune721(address(fortune));
+        console.log("Fortune721 linked to Pack1155");
 
-        // 7. Deploy and configure adapter
-        DirectBurn721 adapter = new DirectBurn721(address(mockNFT));
+        // 7. Deploy MockNFT
+        MockERC721 mockNFT = new MockERC721();
+        uint256 tokenId1 = mockNFT.mint(deployer);
+        uint256 tokenId2 = mockNFT.mint(deployer);
+        console.log("MockNFT deployed: %s (tokens #%s, #%s)", address(mockNFT), tokenId1, tokenId2);
+
+        // 8. Deploy and configure adapter
+        DeadTransfer721 adapter = new DeadTransfer721(address(mockNFT));
         gateway.setAdapter(address(mockNFT), address(adapter));
         console.log("Burn adapter configured: %s", address(adapter));
 
-        // 8. Load all fortune texts
+        // 9. Load all fortune texts
         console.log("Loading fortune texts...");
         loadFortuneTexts(fortune);
         console.log("All 90 fortune texts loaded");
@@ -84,7 +89,7 @@ contract DeployComplete is Script {
         console.log("");
         console.log("# Mock NFT Check");
         console.log("NEXT_PUBLIC_PROMISE_CONTRACT=%s", address(mockNFT));
-        console.log("NEXT_PUBLIC_PROMISE_TOKEN_ID=%s", tokenId);
+        console.log("NEXT_PUBLIC_PROMISE_TOKEN_ID=%s", tokenId1);
         console.log("NEXT_PUBLIC_PROMISE_CHAIN_ID=1337");
         console.log("NEXT_PUBLIC_PROMISE_NFT=%s", address(mockNFT));
         console.log("");

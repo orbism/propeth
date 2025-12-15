@@ -25,6 +25,7 @@ export function UniversalCard() {
     fortuneTokenId,
     setCurrentStep,
     reset,
+    ownedTokenIds,
   } = useAppStore();
 
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -68,8 +69,17 @@ export function UniversalCard() {
         alert('Promise NFT address not configured. Check .env.local');
         return;
       }
+      
+      // Try to use owned token IDs from API, fallback to sequential search (0, 1, 2, ...)
+      // The hook will detect if the transaction fails and try the next ID
+      const tokenIdToBurn = ownedTokenIds.length > 0 
+        ? BigInt(ownedTokenIds[0]) 
+        : BigInt(0); // Will iterate if this one fails
+      
+      console.log('[UniversalCard] Attempting to burn token ID:', tokenIdToBurn.toString());
+      
       setCurrentStep('minting');
-      burnAndMint(promiseNftAddress, BigInt(0));
+      burnAndMint(promiseNftAddress, tokenIdToBurn);
     }
   };
 
@@ -116,12 +126,12 @@ export function UniversalCard() {
         );
       
       case 'triptych-display':
-        return triptychIds ? (
+        return (
           <TriptychDisplay
             cardIds={triptychIds}
             hasFortune={fortuneTokenId !== null}
           />
-        ) : null;
+        );
       
       case 'fortune-reveal':
         return triptychIds ? (

@@ -13,6 +13,7 @@ evm_version = "cancun"
 # Remappings for OpenZeppelin
 remappings = [
     "@openzeppelin/=lib/openzeppelin-contracts/",
+    "@openzeppelin-upgradeable/=lib/openzeppelin-contracts-upgradeable/",
     "@chainlink/=lib/chainlink/",
 ]
 
@@ -37,10 +38,10 @@ fs_permissions = [{ access = "read-write", path = "deployments" }]
 mainnet = "${MAINNET_RPC_URL}"
 sepolia = "${SEPOLIA_RPC_URL}"
 
-# Etherscan configuration
+# Etherscan configuration (V2 API)
 [etherscan]
-mainnet = { key = "${ETHERSCAN_API_KEY}" }
-sepolia = { key = "${ETHERSCAN_API_KEY}" }
+sepolia = { key = "${ETHERSCAN_API_KEY}", url = "https://api-sepolia.etherscan.io/api" }
+mainnet = { key = "${ETHERSCAN_API_KEY}", url = "https://api.etherscan.io/api" }
 
 # Formatting
 [fmt]
