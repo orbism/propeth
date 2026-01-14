@@ -48,6 +48,10 @@ contract DeploySepolia is Script {
         pack.setFortune721(address(fortune));
         console.log("[6] Fortune721 linked to Pack1155");
 
+        // 6b. Link Pack1155 to Fortune721 for resetUserState access control
+        fortune.setPack1155(address(pack));
+        console.log("[6b] Pack1155 linked to Fortune721");
+
         // 7. Deploy MockNFTWithSale (50 tokens sent to occvlt.eth)
         MockNFTWithSale mockNFT = new MockNFTWithSale(OCCVLT_ETH);
         console.log("[7] MockNFTWithSale deployed (50 sent to occvlt.eth)");
