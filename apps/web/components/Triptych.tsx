@@ -43,6 +43,7 @@ export function Triptych({ cardIds, onContinue, hasFortune }: TriptychProps) {
           width={200}
           height={200}
           className="absolute top-0 left-0"
+          style={{ width: 'auto', height: 'auto' }}
         />
         <Image
           src="/images/frame_tr.png"
@@ -50,6 +51,7 @@ export function Triptych({ cardIds, onContinue, hasFortune }: TriptychProps) {
           width={200}
           height={200}
           className="absolute top-0 right-0"
+          style={{ width: 'auto', height: 'auto' }}
         />
         <Image
           src="/images/frame_bl.png"
@@ -57,6 +59,7 @@ export function Triptych({ cardIds, onContinue, hasFortune }: TriptychProps) {
           width={200}
           height={200}
           className="absolute bottom-0 left-0"
+          style={{ width: 'auto', height: 'auto' }}
         />
         <Image
           src="/images/frame_br.png"
@@ -64,6 +67,7 @@ export function Triptych({ cardIds, onContinue, hasFortune }: TriptychProps) {
           width={200}
           height={200}
           className="absolute bottom-0 right-0"
+          style={{ width: 'auto', height: 'auto' }}
         />
       </div>
 
@@ -99,7 +103,7 @@ export function Triptych({ cardIds, onContinue, hasFortune }: TriptychProps) {
           onClick={onContinue}
           className="px-16 py-8 !text-4xl font-bold border-4 border-white text-white hover:bg-white hover:text-black transition-all duration-300 backdrop-blur-sm"
         >
-          {hasFortune ? 'You have already received your fortune. Read it again' : 'What Does it mean?!'}
+          {hasFortune ? 'You have already received your fortune. Read it again' : 'What does it mean?!'}
         </button>
       </div>
     </div>

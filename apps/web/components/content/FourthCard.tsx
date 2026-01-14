@@ -113,7 +113,7 @@ export function FourthCard({ cardIds }: FourthCardProps) {
               <button
                 onClick={handleMintFortune}
                 disabled={isMintingFortune || isConfirmingFortune}
-                className="px-12 py-6 text-2xl font-bold border-4 border-white text-white hover:bg-white hover:text-black transition-all duration-300 disabled:opacity-50"
+                className="px-12 py-6 !text-4xl font-bold border-4 border-white text-white hover:bg-white hover:text-black transition-all duration-300 disabled:opacity-50"
               >
                 {isMintingFortune || isConfirmingFortune ? 'Revealing...' : 'Reveal Final Card (Free)'}
               </button>

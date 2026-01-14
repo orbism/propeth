@@ -114,6 +114,7 @@ export function FourthCardModal({ isOpen, onClose, cardIds }: FourthCardModalPro
             width={150}
             height={150}
             className="absolute top-0 left-0"
+            style={{ width: 'auto', height: 'auto' }}
           />
           <Image
             src="/images/frame_tr.png"
@@ -121,6 +122,7 @@ export function FourthCardModal({ isOpen, onClose, cardIds }: FourthCardModalPro
             width={150}
             height={150}
             className="absolute top-0 right-0"
+            style={{ width: 'auto', height: 'auto' }}
           />
           <Image
             src="/images/frame_bl.png"
@@ -128,6 +130,7 @@ export function FourthCardModal({ isOpen, onClose, cardIds }: FourthCardModalPro
             width={150}
             height={150}
             className="absolute bottom-0 left-0"
+            style={{ width: 'auto', height: 'auto' }}
           />
           <Image
             src="/images/frame_br.png"
@@ -135,6 +138,7 @@ export function FourthCardModal({ isOpen, onClose, cardIds }: FourthCardModalPro
             width={150}
             height={150}
             className="absolute bottom-0 right-0"
+            style={{ width: 'auto', height: 'auto' }}
           />
         </div>
 
@@ -163,7 +167,7 @@ export function FourthCardModal({ isOpen, onClose, cardIds }: FourthCardModalPro
                 <button
                   onClick={handleMintFortune}
                   disabled={isMintingFortune || isConfirmingFortune}
-                  className="px-12 py-6 text-2xl font-bold border-4 border-white text-white hover:bg-white hover:text-black transition-all duration-300 disabled:opacity-50"
+                  className="px-12 py-6 !text-4xl font-bold border-4 border-white text-white hover:bg-white hover:text-black transition-all duration-300 disabled:opacity-50"
                 >
                   {isMintingFortune || isConfirmingFortune ? 'Revealing...' : 'Reveal Final Card (Free)'}
                 </button>

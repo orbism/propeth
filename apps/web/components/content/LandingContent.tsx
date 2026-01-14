@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAccount } from 'wagmi';
+import Link from 'next/link';
 import { WalletButton } from '../WalletButton';
 import { ModalFrame } from '@/components/ui/ModalFrame';
 import { useAppStore } from '@/lib/store';
@@ -39,7 +40,10 @@ export function LandingContent() {
       <div className="flex items-center justify-center min-h-screen p-8">
         <div className="w-[1200px] h-[666px] relative flex items-center justify-center">
           {/* Top Right - Connect Wallet Button */}
-          <div className="absolute top-16 right-16 z-30">
+          <div className="absolute top-16 right-16 z-30 text-right">
+            {isConnected && (
+              <p className="text-white/40 font-mono mb-1 !text-xs">connected:</p>
+            )}
             <WalletButton
               externalOpen={forceWalletOpen}
               onRequestClose={() => setForceWalletOpen(false)}
@@ -56,6 +60,18 @@ export function LandingContent() {
             </button>
           </div>
 
+          {/* Bottom Right - My Readings (only when connected) */}
+          {isConnected && (
+            <div className="absolute bottom-16 right-16 z-30">
+              <Link
+                href="/my-readings"
+                className="text-white/70 hover:text-white transition-colors jacquard-12"
+              >
+                <span className="larger">view my past readings</span>
+              </Link>
+            </div>
+          )}
+
           {/* Centered Content */}
           <div className="relative z-10 flex flex-col items-center justify-center text-center">
             {/* Logo */}
@@ -65,7 +81,7 @@ export function LandingContent() {
                 alt="Umbra The Great Propeth"
                 width={500}
                 height={250}
-                className="max-w-full h-auto"
+                style={{ width: 'auto', height: 'auto', maxWidth: '100%' }}
               />
             </div>
 

@@ -86,6 +86,7 @@ contract Pack1155 is ERC1155, ERC2981, Ownable, Pausable, ReentrancyGuard {
     error AlreadyMintedPack();
     error InvalidGateway();
     error InvalidFortune721();
+    error DuplicateCardsFailed();
 
     /**
      * @notice Initializes the Pack1155 contract
@@ -284,9 +285,12 @@ contract Pack1155 is ERC1155, ERC2981, Ownable, Pausable, ReentrancyGuard {
                 attempts++;
             }
 
-            // If all attempts exhausted, revert
+            // If all attempts exhausted, revert for supply or duplicate issues
             if (maxSupply[id] > 0 && totalMinted[id] >= maxSupply[id]) {
                 revert SupplyExhausted(id);
+            }
+            if (isDuplicate) {
+                revert DuplicateCardsFailed();
             }
 
             ids[i] = id;

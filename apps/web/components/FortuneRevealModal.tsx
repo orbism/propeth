@@ -47,7 +47,7 @@ export function FortuneRevealModal({ isOpen, onClose, cardIds, onMintFortune, is
         <button
           onClick={handleReveal}
           disabled={isMinting}
-          className="mt-8 w-full px-8 py-4 text-xl font-bold border-4 border-white text-white hover:bg-white hover:text-black transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+          className="mt-8 w-full px-8 py-4 !text-4xl font-bold border-4 border-white text-white hover:bg-white hover:text-black transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
         >
           {isMinting && (
             <div className="animate-spin w-6 h-6 border-2 border-white border-t-transparent rounded-full" />

@@ -32,7 +32,7 @@ export function WalletButton({ externalOpen = false, onRequestClose }: WalletBut
 
   if (isConnected && address) {
     return (
-      <div className="px-4 py-2  text-white text-sm backdrop-blur-sm jacquard-12 larger">
+      <div className="text-white text-sm backdrop-blur-sm jacquard-12 larger">
         {address.slice(0, 6)}...{address.slice(-4)}
       </div>
     );

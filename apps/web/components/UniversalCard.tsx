@@ -32,8 +32,15 @@ export function UniversalCard() {
   const [displayedStep, setDisplayedStep] = useState(currentStep);
 
   const { mintPack, isPending: isMintingPack, error: mintPackError, hash: packHash } = useMintPack();
-  const { mintFortune, isPending: isMintingFortune, error: mintFortuneError, hash: fortuneHash } = useMintFortune();
-  const { burnAndMint, isPending: isBurning } = useBurnAndMint();
+  const { mintFortune, isPending: isMintingFortune, error: mintFortuneError, userError: fortuneUserError, hash: fortuneHash } = useMintFortune();
+  const { burnAndMint, isPending: isBurning, phase: burnPhase } = useBurnAndMint();
+
+  // Debug logging for burn phase
+  useEffect(() => {
+    if (burnPhase !== 'idle') {
+      console.log('[UniversalCard] 🔥 Burn phase:', burnPhase);
+    }
+  }, [burnPhase]);
 
   // Handle step transitions with fade effect
   useEffect(() => {
@@ -145,12 +152,12 @@ export function UniversalCard() {
       case 'fourth-card-mint':
         return (
           <MintLoader
-            status={mintFortuneError ? 'error' : (isMintingFortune ? 'confirming' : 'pending')}
-            message="Creating your final fortune NFT..."
+            status={(mintFortuneError || fortuneUserError) ? 'error' : (isMintingFortune ? 'confirming' : 'pending')}
+            message={fortuneUserError || "Creating your final fortune NFT..."}
             txHash={fortuneHash || undefined}
             error={mintFortuneError}
             onClose={() => {
-              if (mintFortuneError) {
+              if (mintFortuneError || fortuneUserError) {
                 setCurrentStep('triptych-display');
               }
             }}
@@ -193,6 +200,7 @@ export function UniversalCard() {
               width={200}
               height={200}
               className="absolute top-0 left-0"
+              style={{ width: 'auto', height: 'auto' }}
             />
             <Image
               src="/images/frame_tr.png"
@@ -200,6 +208,7 @@ export function UniversalCard() {
               width={200}
               height={200}
               className="absolute top-0 right-0"
+              style={{ width: 'auto', height: 'auto' }}
             />
             <Image
               src="/images/frame_bl.png"
@@ -207,6 +216,7 @@ export function UniversalCard() {
               width={200}
               height={200}
               className="absolute bottom-0 left-0"
+              style={{ width: 'auto', height: 'auto' }}
             />
             <Image
               src="/images/frame_br.png"
@@ -214,6 +224,7 @@ export function UniversalCard() {
               width={200}
               height={200}
               className="absolute bottom-0 right-0"
+              style={{ width: 'auto', height: 'auto' }}
             />
           </div>
 

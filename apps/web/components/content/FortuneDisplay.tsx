@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { FortuneCard } from '../FortuneCard';
 import { MarketLinks } from '../MarketLinks';
 import { RestartButton } from '../RestartButton';
@@ -37,6 +38,14 @@ export function FortuneDisplay({ tokenId }: FortuneDisplayProps) {
 
           {/* Restart Button */}
           <RestartButton />
+
+          {/* View Past Readings Link */}
+          <Link
+            href="/my-readings"
+            className="!mt-4 text-white/60 hover:text-white transition-colors jacquard-12 text-lg"
+          >
+            view all my readings &rarr;
+          </Link>
         </div>
       </div>
     </div>

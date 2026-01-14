@@ -121,3 +121,39 @@ button:hover {
   text-shadow: 0 0 8px #d9cda9;
   transition: all 0.3s ease;
 }
+
+/* Custom scrollbar for dark theme */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Spooky loading spinner */
+@keyframes mystic-spin {
+  0% { transform: rotate(0deg); opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { transform: rotate(360deg); opacity: 0.5; }
+}
+
+.mystic-spinner {
+  animation: mystic-spin 2s linear infinite;
+}
+
+/* Pulsing border for unfinished reading */
+@keyframes pulse-border {
+  0%, 100% { border-color: rgba(212, 196, 168, 0.3); }
+  50% { border-color: rgba(212, 196, 168, 0.8); }
+}

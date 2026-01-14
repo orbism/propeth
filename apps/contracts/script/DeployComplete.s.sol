@@ -54,11 +54,10 @@ contract DeployComplete is Script {
         pack.setFortune721(address(fortune));
         console.log("Fortune721 linked to Pack1155");
 
-        // 7. Deploy MockNFT
+        // 7. Deploy MockNFT (mint only 1 token to avoid Promise persisting after burn)
         MockERC721 mockNFT = new MockERC721();
         uint256 tokenId1 = mockNFT.mint(deployer);
-        uint256 tokenId2 = mockNFT.mint(deployer);
-        console.log("MockNFT deployed: %s (tokens #%s, #%s)", address(mockNFT), tokenId1, tokenId2);
+        console.log("MockNFT deployed: %s (token #%s)", address(mockNFT), tokenId1);
 
         // 8. Deploy and configure adapter
         DeadTransfer721 adapter = new DeadTransfer721(address(mockNFT));

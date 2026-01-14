@@ -39,7 +39,7 @@ export function FortuneReveal({ cardIds, onMintFortune, isMinting }: FortuneReve
         <button
           onClick={handleReveal}
           disabled={isMinting}
-          className="w-full px-12 py-8 text-3xl font-bold border-4 border-green-600 text-white hover:bg-green-600/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full px-12 py-8 !text-4xl font-bold border-4 border-green-600 text-white hover:bg-green-600/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isMinting ? 'Revealing...' : 'Reveal Final Card (Free)'}
         </button>

@@ -50,6 +50,7 @@ export function LandingPage({ onInsertCoin }: LandingPageProps) {
               width={200}
               height={200}
               className="absolute top-0 left-0"
+              style={{ width: 'auto', height: 'auto' }}
             />
             <Image
               src="/images/frame_tr.png"
@@ -57,6 +58,7 @@ export function LandingPage({ onInsertCoin }: LandingPageProps) {
               width={200}
               height={200}
               className="absolute top-0 right-0"
+              style={{ width: 'auto', height: 'auto' }}
             />
             <Image
               src="/images/frame_bl.png"
@@ -64,6 +66,7 @@ export function LandingPage({ onInsertCoin }: LandingPageProps) {
               width={200}
               height={200}
               className="absolute bottom-0 left-0"
+              style={{ width: 'auto', height: 'auto' }}
             />
             <Image
               src="/images/frame_br.png"
@@ -71,6 +74,7 @@ export function LandingPage({ onInsertCoin }: LandingPageProps) {
               width={200}
               height={200}
               className="absolute bottom-0 right-0"
+              style={{ width: 'auto', height: 'auto' }}
             />
           </div>
 
@@ -101,7 +105,7 @@ export function LandingPage({ onInsertCoin }: LandingPageProps) {
                 alt="Umbra The Great Propeth"
                 width={500}
                 height={250}
-                className="max-w-full h-auto"
+                style={{ width: 'auto', height: 'auto', maxWidth: '100%' }}
               />
             </div>
 

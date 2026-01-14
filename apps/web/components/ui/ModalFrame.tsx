@@ -16,10 +16,10 @@ export function ModalFrame({ isOpen, onClose, children }: ModalFrameProps) {
       <div className="bg-transparent max-w-4xl w-full relative" style={{ padding: '3em' }}>
         {/* Modal Corner Frames */}
         <div className="absolute inset-0 pointer-events-none backdrop-blur-sm">
-          <Image src="/images/frame_tl.png" alt="" width={100} height={100} className="absolute top-0 left-0" />
-          <Image src="/images/frame_tr.png" alt="" width={100} height={100} className="absolute top-0 right-0" />
-          <Image src="/images/frame_bl.png" alt="" width={100} height={100} className="absolute bottom-0 left-0" />
-          <Image src="/images/frame_br.png" alt="" width={100} height={100} className="absolute bottom-0 right-0" />
+          <Image src="/images/frame_tl.png" alt="" width={100} height={100} className="absolute top-0 left-0" style={{ width: 'auto', height: 'auto' }} />
+          <Image src="/images/frame_tr.png" alt="" width={100} height={100} className="absolute top-0 right-0" style={{ width: 'auto', height: 'auto' }} />
+          <Image src="/images/frame_bl.png" alt="" width={100} height={100} className="absolute bottom-0 left-0" style={{ width: 'auto', height: 'auto' }} />
+          <Image src="/images/frame_br.png" alt="" width={100} height={100} className="absolute bottom-0 right-0" style={{ width: 'auto', height: 'auto' }} />
         </div>
 
         {onClose && (
