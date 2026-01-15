@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.26;
 
 import "forge-std/Script.sol";
 import "../src/Pack1155.sol";
 import "../src/Fortune721.sol";
 import "../src/BurnRedeemGateway.sol";
 import "../src/mocks/MockRandomness.sol";
-import "../src/mocks/MockERC721.sol";
-import "../src/adapters/DeadTransfer721.sol";
+import "../src/mocks/MockERC1155WithSale.sol";
+import "../src/adapters/DirectBurn1155.sol";
 
 contract DeployComplete is Script {
     function run() external {
@@ -54,15 +54,18 @@ contract DeployComplete is Script {
         pack.setFortune721(address(fortune));
         console.log("Fortune721 linked to Pack1155");
 
-        // 7. Deploy MockNFT (mint only 1 token to avoid Promise persisting after burn)
-        MockERC721 mockNFT = new MockERC721();
-        uint256 tokenId1 = mockNFT.mint(deployer);
-        console.log("MockNFT deployed: %s (token #%s)", address(mockNFT), tokenId1);
+        // 6b. Link Pack1155 to Fortune721 for resetUserState access control
+        fortune.setPack1155(address(pack));
+        console.log("Pack1155 linked to Fortune721");
 
-        // 8. Deploy and configure adapter
-        DeadTransfer721 adapter = new DeadTransfer721(address(mockNFT));
+        // 7. Deploy MockERC1155WithSale (50 tokens sent to deployer)
+        MockERC1155WithSale mockNFT = new MockERC1155WithSale(deployer);
+        console.log("MockERC1155WithSale deployed: %s (50 tokens to deployer)", address(mockNFT));
+
+        // 8. Deploy and configure burn adapter (ERC1155 with Manifold burn signature)
+        DirectBurn1155 adapter = new DirectBurn1155(address(mockNFT));
         gateway.setAdapter(address(mockNFT), address(adapter));
-        console.log("Burn adapter configured: %s", address(adapter));
+        console.log("DirectBurn1155 adapter configured: %s", address(adapter));
 
         // 9. Load all fortune texts
         console.log("Loading fortune texts...");
@@ -86,9 +89,9 @@ contract DeployComplete is Script {
         console.log("NEXT_PUBLIC_BURN_GATEWAY=%s", address(gateway));
         console.log("NEXT_PUBLIC_FORTUNE721=%s", address(fortune));
         console.log("");
-        console.log("# Mock NFT Check");
+        console.log("# Mock NFT (ERC1155)");
         console.log("NEXT_PUBLIC_PROMISE_CONTRACT=%s", address(mockNFT));
-        console.log("NEXT_PUBLIC_PROMISE_TOKEN_ID=%s", tokenId1);
+        console.log("NEXT_PUBLIC_PROMISE_TOKEN_ID=1");
         console.log("NEXT_PUBLIC_PROMISE_CHAIN_ID=1337");
         console.log("NEXT_PUBLIC_PROMISE_NFT=%s", address(mockNFT));
         console.log("");

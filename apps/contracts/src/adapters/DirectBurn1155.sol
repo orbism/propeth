@@ -6,7 +6,8 @@ import "../interfaces/IBurnAdapter.sol";
 
 /**
  * @title DirectBurn1155
- * @notice Burns ERC1155 tokens that implement a burn() function
+ * @notice Burns ERC1155 tokens using Manifold's burn signature
+ * @dev Manifold ERC1155 burn: burn(address account, uint256[] tokenIds, uint256[] amounts)
  */
 contract DirectBurn1155 is IBurnAdapter {
     /// @notice Target ERC1155 collection
@@ -22,24 +23,34 @@ contract DirectBurn1155 is IBurnAdapter {
     }
 
     /**
-     * @notice Burns ERC1155 tokens by calling their burn function
-     * @param user Token owner (must have approved gateway)
+     * @notice Burns an ERC1155 token using Manifold's array-based burn
+     * @param user Token owner (must have approved gateway via setApprovalForAll)
      * @param tokenId Token ID to burn
      * @param amount Amount to burn
      */
     function burnFor(address user, uint256 tokenId, uint256 amount) external {
-        // Transfer to this contract first
+        // Transfer to this contract first (requires user to have approved gateway)
         collection.safeTransferFrom(user, address(this), tokenId, amount, "");
 
-        // Call burn on the token (requires burnable interface)
+        // Build arrays for Manifold's burn signature
+        uint256[] memory tokenIds = new uint256[](1);
+        uint256[] memory amounts = new uint256[](1);
+        tokenIds[0] = tokenId;
+        amounts[0] = amount;
+
+        // Call Manifold's burn function: burn(address, uint256[], uint256[])
         (bool success, bytes memory reason) = address(collection).call(
-            abi.encodeWithSignature("burn(address,uint256,uint256)", address(this), tokenId, amount)
+            abi.encodeWithSignature(
+                "burn(address,uint256[],uint256[])",
+                address(this),
+                tokenIds,
+                amounts
+            )
         );
-        
+
         if (!success) {
-            // Provide more detailed error information
-            string memory errorMsg = reason.length > 0 
-                ? string(reason) 
+            string memory errorMsg = reason.length > 0
+                ? string(reason)
                 : "Burn failed: unknown reason";
             revert BurnFailed(errorMsg);
         }
@@ -56,5 +67,18 @@ contract DirectBurn1155 is IBurnAdapter {
         bytes calldata
     ) external pure returns (bytes4) {
         return this.onERC1155Received.selector;
+    }
+
+    /**
+     * @notice Required for receiving batch ERC1155 tokens
+     */
+    function onERC1155BatchReceived(
+        address,
+        address,
+        uint256[] calldata,
+        uint256[] calldata,
+        bytes calldata
+    ) external pure returns (bytes4) {
+        return this.onERC1155BatchReceived.selector;
     }
 }

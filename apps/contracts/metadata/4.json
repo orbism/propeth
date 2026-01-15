@@ -1,12 +1,12 @@
 {
-  "name": "Mystery",
+  "name": "Mistery",
   "description": "Sooner or later everything will start to make sense.",
-  "image": "ipfs://bafybeigoyj3j4tketnqj67pdvit7tzq47zdpf7tucoy4je5gts67ewq2km",
-  "animation_url": "ipfs://bafybeigoyj3j4tketnqj67pdvit7tzq47zdpf7tucoy4je5gts67ewq2km",
+  "image": "ipfs://bafybeielmzvgvvtdlwtinodny4pn2mgdbpveccrprfc2skmckjwpzlb2zu",
+  "animation_url": "ipfs://bafybeielmzvgvvtdlwtinodny4pn2mgdbpveccrprfc2skmckjwpzlb2zu",
   "attributes": [
     {
       "trait_type": "Card",
-      "value": "Mystery"
+      "value": "Mistery"
     }
   ]
 }

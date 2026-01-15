@@ -6,8 +6,8 @@ import "../src/Pack1155.sol";
 import "../src/Fortune721.sol";
 import "../src/BurnRedeemGateway.sol";
 import "../src/mocks/MockRandomness.sol";
-import "../src/mocks/MockNFTWithSale.sol";
-import "../src/adapters/DirectBurn721.sol";
+import "../src/mocks/MockERC1155WithSale.sol";
+import "../src/adapters/DirectBurn1155.sol";
 
 contract DeploySepolia is Script {
     address constant PAYOUT_ADDRESS = 0x9d455AFFe240a25AdC6cD75293ca6ab2a010ab0f;
@@ -52,14 +52,14 @@ contract DeploySepolia is Script {
         fortune.setPack1155(address(pack));
         console.log("[6b] Pack1155 linked to Fortune721");
 
-        // 7. Deploy MockNFTWithSale (50 tokens sent to occvlt.eth)
-        MockNFTWithSale mockNFT = new MockNFTWithSale(OCCVLT_ETH);
-        console.log("[7] MockNFTWithSale deployed (50 sent to occvlt.eth)");
+        // 7. Deploy MockERC1155WithSale (50 tokens sent to occvlt.eth)
+        MockERC1155WithSale mockNFT = new MockERC1155WithSale(OCCVLT_ETH);
+        console.log("[7] MockERC1155WithSale deployed (50 tokens sent to occvlt.eth)");
 
-        // 8. Deploy and configure burn adapter
-        DirectBurn721 adapter = new DirectBurn721(address(mockNFT));
+        // 8. Deploy and configure burn adapter (ERC1155 with Manifold burn signature)
+        DirectBurn1155 adapter = new DirectBurn1155(address(mockNFT));
         gateway.setAdapter(address(mockNFT), address(adapter));
-        console.log("[8] Burn adapter configured");
+        console.log("[8] DirectBurn1155 adapter configured");
 
         // 9. Load fortune texts
         loadFortuneTexts(fortune);
@@ -86,9 +86,10 @@ contract DeploySepolia is Script {
         console.log("# PAYOUT");
         console.log("NEXT_PUBLIC_PAYOUT_ADDRESS=%s", PAYOUT_ADDRESS);
         console.log("");
-        console.log("# MOCK NFT");
+        console.log("# MOCK NFT (ERC1155)");
         console.log("NEXT_PUBLIC_PROMISE_CONTRACT=%s", address(mockNFT));
         console.log("NEXT_PUBLIC_PROMISE_NFT=%s", address(mockNFT));
+        console.log("NEXT_PUBLIC_PROMISE_TOKEN_ID=1");
         console.log("NEXT_PUBLIC_PROMISE_CHAIN_ID=11155111");
         console.log("");
         console.log("# PRICING");

@@ -1,8 +1,8 @@
 {
   "name": "Shadow",
   "description": "A shadow opposes the light, yet follows wherever it goes",
-  "image": "ipfs://bafybeicwlda5r3upnt5wi2hayajlwmknaezncinebsx7vgnrxi6tttojyq",
-  "animation_url": "ipfs://bafybeicwlda5r3upnt5wi2hayajlwmknaezncinebsx7vgnrxi6tttojyq",
+  "image": "ipfs://bafybeihkp3fsztva5qvxeibdxi4bcivpqmgpb3w6j3xtjqt5apb2l7rmsa",
+  "animation_url": "ipfs://bafybeihkp3fsztva5qvxeibdxi4bcivpqmgpb3w6j3xtjqt5apb2l7rmsa",
   "attributes": [
     {
       "trait_type": "Card",
