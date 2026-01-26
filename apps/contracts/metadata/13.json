@@ -1,8 +1,8 @@
 {
   "name": "Anchor",
   "description": "Cut the anchors, tomorrow is waiting.",
-  "image": "ipfs://bafybeic2appjym77ykovhhsr7weagh7bocil3tmytdv55urdjtwpaejj2e",
-  "animation_url": "ipfs://bafybeic2appjym77ykovhhsr7weagh7bocil3tmytdv55urdjtwpaejj2e",
+  "image": "https://propeth.4everland.link/ipfs/bafybeic2appjym77ykovhhsr7weagh7bocil3tmytdv55urdjtwpaejj2e",
+  "animation_url": "https://propeth.4everland.link/ipfs/bafybeic2appjym77ykovhhsr7weagh7bocil3tmytdv55urdjtwpaejj2e",
   "attributes": [
     {
       "trait_type": "Card",

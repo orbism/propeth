@@ -1,8 +1,8 @@
 {
   "name": "Reflection",
   "description": "We gaze at the reflection to avoid the flame.",
-  "image": "ipfs://bafybeie6tjydwnhuov65rhsxcr3opwobfbpage4cil5k7lip5jd5dl2dia",
-  "animation_url": "ipfs://bafybeie6tjydwnhuov65rhsxcr3opwobfbpage4cil5k7lip5jd5dl2dia",
+  "image": "https://propeth.4everland.link/ipfs/bafybeie6tjydwnhuov65rhsxcr3opwobfbpage4cil5k7lip5jd5dl2dia",
+  "animation_url": "https://propeth.4everland.link/ipfs/bafybeie6tjydwnhuov65rhsxcr3opwobfbpage4cil5k7lip5jd5dl2dia",
   "attributes": [
     {
       "trait_type": "Card",

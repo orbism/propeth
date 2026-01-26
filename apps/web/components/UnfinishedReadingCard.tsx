@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useReadContract } from 'wagmi';
 import Link from 'next/link';
 import { PACK1155_ADDRESS, PACK1155_ABI } from '@/lib/contracts';
+import { ipfsToGateway } from '@/lib/ipfs';
 
 interface UnfinishedReadingCardProps {
   cardIds: [bigint, bigint, bigint];
@@ -36,7 +37,7 @@ export function UnfinishedReadingCard({ cardIds }: UnfinishedReadingCardProps) {
 
       const fetchPromises = cardIds.map(async (id, i) => {
         try {
-          const url = `${metadataUri}${id}.json`.replace('ipfs://', 'https://ipfs.io/ipfs/');
+          const url = ipfsToGateway(`${metadataUri}${id}.json`);
           const response = await fetch(url);
           const data = await response.json();
           metadata[i] = { name: data.name, animation_url: data.animation_url };
@@ -105,7 +106,7 @@ export function UnfinishedReadingCard({ cardIds }: UnfinishedReadingCardProps) {
                   className={`w-full h-full object-cover ${allReady ? 'opacity-100' : 'opacity-0'}`}
                 >
                   <source
-                    src={cardMetadata[i]!.animation_url.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+                    src={ipfsToGateway(cardMetadata[i]!.animation_url)}
                     type="video/mp4"
                   />
                 </video>

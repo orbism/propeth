@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useReadContract, useAccount, usePublicClient } from 'wagmi';
 import { useAppStore } from '@/lib/store';
 import { PACK1155_ADDRESS, PACK1155_ABI } from '@/lib/contracts';
+import { ipfsToGateway } from '@/lib/ipfs';
 
 interface CardMetadata {
   name: string;
@@ -95,7 +96,7 @@ export function TriptychDisplay({ cardIds: providedCardIds, hasFortune }: Tripty
 
       const fetchPromises = cardIds.map(async (id, i) => {
         try {
-          const url = `${metadataUri}${id}.json`.replace('ipfs://', 'https://ipfs.io/ipfs/');
+          const url = ipfsToGateway(`${metadataUri}${id}.json`);
           const response = await fetch(url);
           const data = await response.json();
           metadata[i] = {
@@ -179,7 +180,7 @@ export function TriptychDisplay({ cardIds: providedCardIds, hasFortune }: Tripty
                 className={`w-full h-full object-cover ${allReady ? 'opacity-100' : 'opacity-0'}`}
               >
                 <source
-                  src={cardMetadata[index]!.animation_url.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+                  src={ipfsToGateway(cardMetadata[index]!.animation_url)}
                   type="video/mp4"
                 />
               </video>

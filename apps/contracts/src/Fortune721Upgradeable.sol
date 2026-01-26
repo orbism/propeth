@@ -4,6 +4,7 @@ pragma solidity ^0.8.26;
 import "@openzeppelin-upgradeable/contracts/token/ERC721/ERC721Upgradeable.sol";
 import "@openzeppelin-upgradeable/contracts/token/common/ERC2981Upgradeable.sol";
 import "@openzeppelin-upgradeable/contracts/access/OwnableUpgradeable.sol";
+import "@openzeppelin-upgradeable/contracts/utils/PausableUpgradeable.sol";
 import "@openzeppelin-upgradeable/contracts/utils/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
@@ -14,11 +15,12 @@ import "@openzeppelin-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
  * @title Fortune721Upgradeable
  * @notice UUPS Upgradeable version of ERC721 fortune NFTs with on-chain SVG composition
  */
-contract Fortune721Upgradeable is 
+contract Fortune721Upgradeable is
     Initializable,
-    ERC721Upgradeable, 
-    ERC2981Upgradeable, 
-    OwnableUpgradeable, 
+    ERC721Upgradeable,
+    ERC2981Upgradeable,
+    OwnableUpgradeable,
+    PausableUpgradeable,
     ReentrancyGuardUpgradeable,
     UUPSUpgradeable
 {
@@ -29,6 +31,8 @@ contract Fortune721Upgradeable is
     bytes32 public globalSalt;
     string public baseBgCID;
     string public fontURI;
+    address public payoutAddress;
+    address public admin;
 
     mapping(uint256 => mapping(uint256 => mapping(uint256 => string))) public fragmentTexts;
 
@@ -51,6 +55,19 @@ contract Fortune721Upgradeable is
 
     error InvalidCardId(uint256 cardId);
     error DuplicateCardsInTriptych();
+    error InvalidPayoutAddress();
+    error WithdrawalFailed();
+
+    event PayoutAddressUpdated(address indexed oldAddress, address indexed newAddress);
+    event GlobalSaltRotated(bytes32 newSalt);
+    event AdminUpdated(address indexed oldAdmin, address indexed newAdmin);
+
+    error OnlyOwnerOrAdmin();
+
+    modifier onlyOwnerOrAdmin() {
+        if (msg.sender != owner() && msg.sender != admin) revert OnlyOwnerOrAdmin();
+        _;
+    }
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -61,17 +78,20 @@ contract Fortune721Upgradeable is
         __ERC721_init("Bezmiar Fortune", "FORTUNE");
         __ERC2981_init();
         __Ownable_init(msg.sender);
+        __Pausable_init();
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
 
         baseBgCID = _baseBgCID;
         fontURI = "";
         globalSalt = keccak256(abi.encodePacked(block.timestamp, msg.sender));
+        payoutAddress = msg.sender;
     }
 
     function mintFromTriptych(uint256[3] calldata cardIds)
         external
         nonReentrant
+        whenNotPaused
         returns (uint256 tokenId)
     {
         for (uint256 i = 0; i < 3; i++) {
@@ -199,16 +219,16 @@ contract Fortune721Upgradeable is
         return string(abi.encodePacked("data:application/json;base64,", Base64.encode(bytes(json))));
     }
 
-    function setBaseBgCID(string calldata _cid) external onlyOwner {
+    function setBaseBgCID(string calldata _cid) external onlyOwnerOrAdmin {
         baseBgCID = _cid;
     }
 
-    function setFontURI(string calldata _uri) external onlyOwner {
+    function setFontURI(string calldata _uri) external onlyOwnerOrAdmin {
         fontURI = _uri;
     }
 
-    function setFragmentText(uint256 cardId, uint256 position, uint256 variant, string calldata text) 
-        external onlyOwner 
+    function setFragmentText(uint256 cardId, uint256 position, uint256 variant, string calldata text)
+        external onlyOwnerOrAdmin
     {
         if (cardId >= MAX_CARDS) revert InvalidCardId(cardId);
         require(position >= 1 && position <= 3, "Invalid position");
@@ -216,8 +236,45 @@ contract Fortune721Upgradeable is
         fragmentTexts[cardId][position][variant] = text;
     }
 
-    function setRoyalty(address receiver, uint96 feeNumerator) external onlyOwner {
+    function setRoyalty(address receiver, uint96 feeNumerator) external onlyOwnerOrAdmin {
         _setDefaultRoyalty(receiver, feeNumerator);
+    }
+
+    function setAdmin(address newAdmin) external onlyOwner {
+        address oldAdmin = admin;
+        admin = newAdmin;
+        emit AdminUpdated(oldAdmin, newAdmin);
+    }
+
+    function setPayoutAddress(address newAddress) external onlyOwner {
+        if (newAddress == address(0)) revert InvalidPayoutAddress();
+        address oldAddress = payoutAddress;
+        payoutAddress = newAddress;
+        emit PayoutAddressUpdated(oldAddress, newAddress);
+    }
+
+    function setGlobalSalt(bytes32 newSalt) external onlyOwnerOrAdmin {
+        globalSalt = newSalt;
+        emit GlobalSaltRotated(newSalt);
+    }
+
+    function rotateGlobalSalt() external onlyOwnerOrAdmin {
+        globalSalt = keccak256(abi.encodePacked(globalSalt, block.timestamp, block.prevrandao));
+        emit GlobalSaltRotated(globalSalt);
+    }
+
+    function pause() external onlyOwnerOrAdmin {
+        _pause();
+    }
+
+    function unpause() external onlyOwnerOrAdmin {
+        _unpause();
+    }
+
+    function withdraw() external nonReentrant onlyOwner {
+        uint256 balance = address(this).balance;
+        (bool success, ) = payoutAddress.call{value: balance}("");
+        if (!success) revert WithdrawalFailed();
     }
 
     function totalSupply() external view returns (uint256) {

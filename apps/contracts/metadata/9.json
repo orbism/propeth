@@ -1,8 +1,8 @@
 {
   "name": "Pulse",
   "description": "Can you hear it?",
-  "image": "ipfs://bafybeigjeb5c6ezretlzeijuoq5gm3vwbyewvzoio2vl4ahxwogtjs5t5m",
-  "animation_url": "ipfs://bafybeigjeb5c6ezretlzeijuoq5gm3vwbyewvzoio2vl4ahxwogtjs5t5m",
+  "image": "https://propeth.4everland.link/ipfs/bafybeigjeb5c6ezretlzeijuoq5gm3vwbyewvzoio2vl4ahxwogtjs5t5m",
+  "animation_url": "https://propeth.4everland.link/ipfs/bafybeigjeb5c6ezretlzeijuoq5gm3vwbyewvzoio2vl4ahxwogtjs5t5m",
   "attributes": [
     {
       "trait_type": "Card",

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useReadContract } from 'wagmi';
 import { PACK1155_ADDRESS, PACK1155_ABI } from '@/lib/contracts';
+import { ipfsToGateway } from '@/lib/ipfs';
 import Image from 'next/image';
 
 interface ReadingCardProps {
@@ -116,7 +117,7 @@ export function ReadingCard({ tokenId, cardIds, index }: ReadingCardProps) {
 
       for (let i = 0; i < 3; i++) {
         try {
-          const url = `${metadataUri}${cardIds[i]}.json`.replace('ipfs://', 'https://ipfs.io/ipfs/');
+          const url = ipfsToGateway(`${metadataUri}${cardIds[i]}.json`);
           const response = await fetch(url);
           const data = await response.json();
           metadata[i] = { name: data.name, animation_url: data.animation_url };
@@ -198,7 +199,7 @@ export function ReadingCard({ tokenId, cardIds, index }: ReadingCardProps) {
                       className="w-full h-full object-cover"
                     >
                       <source
-                        src={card.animation_url.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+                        src={ipfsToGateway(card.animation_url)}
                         type="video/mp4"
                       />
                     </video>
@@ -255,7 +256,7 @@ export function ReadingCard({ tokenId, cardIds, index }: ReadingCardProps) {
                 className="max-w-full max-h-[60vh]"
               >
                 <source
-                  src={cardMetadata[cardModalOpen]!.animation_url.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+                  src={ipfsToGateway(cardMetadata[cardModalOpen]!.animation_url)}
                   type="video/mp4"
                 />
               </video>

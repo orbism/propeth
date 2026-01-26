@@ -1,8 +1,8 @@
 {
   "name": "Flicker",
   "description": "You can already see the flicker of what's to come.",
-  "image": "ipfs://bafybeicyuztvujx2xu6l3hbrd5nrayduyc3geluraxx6jh64mndt6ec4si",
-  "animation_url": "ipfs://bafybeicyuztvujx2xu6l3hbrd5nrayduyc3geluraxx6jh64mndt6ec4si",
+  "image": "https://propeth.4everland.link/ipfs/bafybeicyuztvujx2xu6l3hbrd5nrayduyc3geluraxx6jh64mndt6ec4si",
+  "animation_url": "https://propeth.4everland.link/ipfs/bafybeicyuztvujx2xu6l3hbrd5nrayduyc3geluraxx6jh64mndt6ec4si",
   "attributes": [
     {
       "trait_type": "Card",

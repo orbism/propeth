@@ -1,8 +1,8 @@
 {
   "name": "Fracture",
   "description": "Fractured, but never broken",
-  "image": "ipfs://bafybeicmclozdr45un52u43ankahornzt37f5spvzcoo4hfh4pgiwmafha",
-  "animation_url": "ipfs://bafybeicmclozdr45un52u43ankahornzt37f5spvzcoo4hfh4pgiwmafha",
+  "image": "https://propeth.4everland.link/ipfs/bafybeicmclozdr45un52u43ankahornzt37f5spvzcoo4hfh4pgiwmafha",
+  "animation_url": "https://propeth.4everland.link/ipfs/bafybeicmclozdr45un52u43ankahornzt37f5spvzcoo4hfh4pgiwmafha",
   "attributes": [
     {
       "trait_type": "Card",

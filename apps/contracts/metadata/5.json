@@ -1,8 +1,8 @@
 {
   "name": "Silence",
   "description": "Ideas intertwine, mocking each other.",
-  "image": "ipfs://bafybeielmzvgvvtdlwtinodny4pn2mgdbpveccrprfc2skmckjwpzlb2zu",
-  "animation_url": "ipfs://bafybeielmzvgvvtdlwtinodny4pn2mgdbpveccrprfc2skmckjwpzlb2zu",
+  "image": "https://propeth.4everland.link/ipfs/bafybeielmzvgvvtdlwtinodny4pn2mgdbpveccrprfc2skmckjwpzlb2zu",
+  "animation_url": "https://propeth.4everland.link/ipfs/bafybeielmzvgvvtdlwtinodny4pn2mgdbpveccrprfc2skmckjwpzlb2zu",
   "attributes": [
     {
       "trait_type": "Card",

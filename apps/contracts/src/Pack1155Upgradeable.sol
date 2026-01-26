@@ -26,6 +26,7 @@ contract Pack1155Upgradeable is
     IRandomness public randomnessSource;
     uint256 public entropyEpoch;
     address public gateway;
+    address public admin;
 
     mapping(uint256 => uint256) public maxSupply;
     mapping(uint256 => uint256) public totalMinted;
@@ -37,6 +38,7 @@ contract Pack1155Upgradeable is
     event RandomnessSourceUpdated(address indexed newSource);
     event MaxSupplySet(uint256 indexed id, uint256 maxSupply);
     event GatewayUpdated(address indexed newGateway);
+    event AdminUpdated(address indexed oldAdmin, address indexed newAdmin);
 
     error InsufficientPayment(uint256 required, uint256 provided);
     error SupplyExhausted(uint256 id);
@@ -47,6 +49,12 @@ contract Pack1155Upgradeable is
     error WithdrawalFailed();
     error OnlyGateway();
     error AlreadyMintedPack();
+    error OnlyOwnerOrAdmin();
+
+    modifier onlyOwnerOrAdmin() {
+        if (msg.sender != owner() && msg.sender != admin) revert OnlyOwnerOrAdmin();
+        _;
+    }
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -158,17 +166,17 @@ contract Pack1155Upgradeable is
         }
     }
 
-    function setURI(string memory newURI) external onlyOwner {
+    function setURI(string memory newURI) external onlyOwnerOrAdmin {
         _setURI(newURI);
     }
 
-    function setMaxSupply(uint256 id, uint256 supply) external onlyOwner {
+    function setMaxSupply(uint256 id, uint256 supply) external onlyOwnerOrAdmin {
         if (id >= maxCardId) revert InvalidCardId(id);
         maxSupply[id] = supply;
         emit MaxSupplySet(id, supply);
     }
 
-    function setPrice(uint256 newPrice) external onlyOwner {
+    function setPrice(uint256 newPrice) external onlyOwnerOrAdmin {
         uint256 oldPrice = pricePerPack;
         pricePerPack = newPrice;
         emit PriceUpdated(oldPrice, newPrice);
@@ -181,7 +189,7 @@ contract Pack1155Upgradeable is
         emit PayoutAddressUpdated(oldAddress, newAddress);
     }
 
-    function setRandomnessSource(address newSource) external onlyOwner {
+    function setRandomnessSource(address newSource) external onlyOwnerOrAdmin {
         if (newSource == address(0)) revert InvalidRandomnessSource();
         randomnessSource = IRandomness(newSource);
         emit RandomnessSourceUpdated(newSource);
@@ -193,19 +201,25 @@ contract Pack1155Upgradeable is
         emit GatewayUpdated(newGateway);
     }
 
-    function rotateEntropyEpoch() external onlyOwner {
+    function setAdmin(address newAdmin) external onlyOwner {
+        address oldAdmin = admin;
+        admin = newAdmin;
+        emit AdminUpdated(oldAdmin, newAdmin);
+    }
+
+    function rotateEntropyEpoch() external onlyOwnerOrAdmin {
         entropyEpoch++;
     }
 
-    function setRoyalty(address receiver, uint96 feeNumerator) external onlyOwner {
+    function setRoyalty(address receiver, uint96 feeNumerator) external onlyOwnerOrAdmin {
         _setDefaultRoyalty(receiver, feeNumerator);
     }
 
-    function pause() external onlyOwner {
+    function pause() external onlyOwnerOrAdmin {
         _pause();
     }
 
-    function unpause() external onlyOwner {
+    function unpause() external onlyOwnerOrAdmin {
         _unpause();
     }
 

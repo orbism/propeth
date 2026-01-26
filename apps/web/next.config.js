@@ -15,6 +15,10 @@ const nextConfig = {
       remotePatterns: [
         {
           protocol: 'https',
+          hostname: 'propeth.4everland.link',
+        },
+        {
+          protocol: 'https',
           hostname: 'ipfs.io',
         },
         {

@@ -1,8 +1,8 @@
 {
   "name": "Eclipse",
   "description": "In eclipse, we see more precisely because we see less.",
-  "image": "ipfs://bafybeiaaeot47kcuab4cymzerzzsmn4cplgvikjc7lmp7bpxtqeku5v6u4",
-  "animation_url": "ipfs://bafybeiaaeot47kcuab4cymzerzzsmn4cplgvikjc7lmp7bpxtqeku5v6u4",
+  "image": "https://propeth.4everland.link/ipfs/bafybeiaaeot47kcuab4cymzerzzsmn4cplgvikjc7lmp7bpxtqeku5v6u4",
+  "animation_url": "https://propeth.4everland.link/ipfs/bafybeiaaeot47kcuab4cymzerzzsmn4cplgvikjc7lmp7bpxtqeku5v6u4",
   "attributes": [
     {
       "trait_type": "Card",

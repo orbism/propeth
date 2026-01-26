@@ -1,8 +1,8 @@
 {
   "name": "The End",
   "description": "Endings echo forward",
-  "image": "ipfs://bafybeigh5nockotkcsww4w4oew7jqmxvpu3wujwpta72fk4ibd4dljlm64",
-  "animation_url": "ipfs://bafybeigh5nockotkcsww4w4oew7jqmxvpu3wujwpta72fk4ibd4dljlm64",
+  "image": "https://propeth.4everland.link/ipfs/bafybeigh5nockotkcsww4w4oew7jqmxvpu3wujwpta72fk4ibd4dljlm64",
+  "animation_url": "https://propeth.4everland.link/ipfs/bafybeigh5nockotkcsww4w4oew7jqmxvpu3wujwpta72fk4ibd4dljlm64",
   "attributes": [
     {
       "trait_type": "Card",

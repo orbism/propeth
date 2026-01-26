@@ -1,8 +1,8 @@
 {
   "name": "Veil",
   "description": "When day returns, the veil comes down.",
-  "image": "ipfs://bafybeidl54m6qqysh26wsr47hqyrpezgjmkmqir2yxetwc6rvvuq3bkdmi",
-  "animation_url": "ipfs://bafybeidl54m6qqysh26wsr47hqyrpezgjmkmqir2yxetwc6rvvuq3bkdmi",
+  "image": "https://propeth.4everland.link/ipfs/bafybeidl54m6qqysh26wsr47hqyrpezgjmkmqir2yxetwc6rvvuq3bkdmi",
+  "animation_url": "https://propeth.4everland.link/ipfs/bafybeidl54m6qqysh26wsr47hqyrpezgjmkmqir2yxetwc6rvvuq3bkdmi",
   "attributes": [
     {
       "trait_type": "Card",

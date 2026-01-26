@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { ipfsToGateway } from '@/lib/ipfs';
 
 interface CardMetadata {
   name: string;
@@ -22,7 +23,7 @@ export function CardDisplay({ cardId, metadataUri }: CardDisplayProps) {
     async function fetchMetadata() {
       try {
         // Construct the URL for the specific card
-        const url = `${metadataUri}${cardId}.json`.replace('ipfs://', 'https://ipfs.io/ipfs/');
+        const url = ipfsToGateway(`${metadataUri}${cardId}.json`);
         const response = await fetch(url);
         const data = await response.json();
         setMetadata(data);
@@ -53,7 +54,7 @@ export function CardDisplay({ cardId, metadataUri }: CardDisplayProps) {
     );
   }
 
-  const videoUrl = metadata.animation_url.replace('ipfs://', 'https://ipfs.io/ipfs/');
+  const videoUrl = ipfsToGateway(metadata.animation_url);
 
   return (
     <div className="w-80 h-[424px] border-4 border-black bg-black/60 backdrop-blur-sm flex flex-col relative overflow-hidden">

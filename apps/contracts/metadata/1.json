@@ -1,8 +1,8 @@
 {
   "name": "Suspicion",
   "description": "Suspicion cuts deeper than truth",
-  "image": "ipfs://bafybeibu773jg3j3idkopfatbymhdcjrpum73pi3kwh7vdgbv6qn2swtwy",
-  "animation_url": "ipfs://bafybeibu773jg3j3idkopfatbymhdcjrpum73pi3kwh7vdgbv6qn2swtwy",
+  "image": "https://propeth.4everland.link/ipfs/bafybeibu773jg3j3idkopfatbymhdcjrpum73pi3kwh7vdgbv6qn2swtwy",
+  "animation_url": "https://propeth.4everland.link/ipfs/bafybeibu773jg3j3idkopfatbymhdcjrpum73pi3kwh7vdgbv6qn2swtwy",
   "attributes": [
     {
       "trait_type": "Card",
