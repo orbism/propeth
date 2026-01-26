@@ -6,12 +6,11 @@ import "../src/Pack1155.sol";
 import "../src/Fortune721.sol";
 import "../src/BurnRedeemGateway.sol";
 import "../src/mocks/MockRandomness.sol";
-import "../src/mocks/MockERC1155WithSale.sol";
 import "../src/adapters/DirectBurn1155.sol";
 
 contract DeploySepolia is Script {
     address constant PAYOUT_ADDRESS = 0x9d455AFFe240a25AdC6cD75293ca6ab2a010ab0f;
-    address constant OCCVLT_ETH = 0x71C7656EC7ab88b098defB751B7401B5f6d8976F; // occvlt.eth resolved address
+    address constant SEPOLIA_TEST_1155 = 0x1B5b28cef8b6f6961AD5606461495f7390F40BFb; // Sepolia test ERC1155
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
@@ -52,53 +51,45 @@ contract DeploySepolia is Script {
         fortune.setPack1155(address(pack));
         console.log("[6b] Pack1155 linked to Fortune721");
 
-        // 7. Deploy MockERC1155WithSale (50 tokens sent to occvlt.eth)
-        MockERC1155WithSale mockNFT = new MockERC1155WithSale(OCCVLT_ETH);
-        console.log("[7] MockERC1155WithSale deployed (50 tokens sent to occvlt.eth)");
+        // 7. Deploy and configure burn adapter for existing Sepolia test ERC1155
+        DirectBurn1155 adapter = new DirectBurn1155(SEPOLIA_TEST_1155);
+        gateway.setAdapter(SEPOLIA_TEST_1155, address(adapter));
+        console.log("[7] DirectBurn1155 adapter configured for Sepolia test ERC1155");
 
-        // 8. Deploy and configure burn adapter (ERC1155 with Manifold burn signature)
-        DirectBurn1155 adapter = new DirectBurn1155(address(mockNFT));
-        gateway.setAdapter(address(mockNFT), address(adapter));
-        console.log("[8] DirectBurn1155 adapter configured");
-
-        // 9. Load fortune texts
+        // 8. Load fortune texts
         loadFortuneTexts(fortune);
-        console.log("[9] All 90 fortune texts loaded");
+        console.log("[8] All 90 fortune texts loaded");
 
         vm.stopBroadcast();
 
         // ===== OUTPUT ENV VARS AT END =====
         console.log("\n");
         console.log("=================================================");
-        console.log("SEPOLIA DEPLOYMENT COMPLETE");
+        console.log("SEPOLIA DEPLOYMENT COMPLETE - Copy to .env:");
         console.log("=================================================\n");
-        
-        console.log("# NETWORK");
+
+        console.log("# Network");
         console.log("NEXT_PUBLIC_CHAIN_ID=11155111");
         console.log("NEXT_PUBLIC_CHAIN_NAME=Sepolia");
         console.log("");
-        console.log("# CONTRACT ADDRESSES");
+        console.log("# Contract Addresses");
         console.log("NEXT_PUBLIC_PACK1155=%s", address(pack));
         console.log("NEXT_PUBLIC_FORTUNE721=%s", address(fortune));
         console.log("NEXT_PUBLIC_BURN_GATEWAY=%s", address(gateway));
-        console.log("NEXT_PUBLIC_MOCK_NFT=%s", address(mockNFT));
         console.log("");
-        console.log("# PAYOUT");
-        console.log("NEXT_PUBLIC_PAYOUT_ADDRESS=%s", PAYOUT_ADDRESS);
-        console.log("");
-        console.log("# MOCK NFT (ERC1155)");
-        console.log("NEXT_PUBLIC_PROMISE_CONTRACT=%s", address(mockNFT));
-        console.log("NEXT_PUBLIC_PROMISE_NFT=%s", address(mockNFT));
+        console.log("# Promise NFT (Sepolia Test ERC1155)");
+        console.log("NEXT_PUBLIC_PROMISE_CONTRACT=%s", SEPOLIA_TEST_1155);
+        console.log("NEXT_PUBLIC_PROMISE_NFT=%s", SEPOLIA_TEST_1155);
         console.log("NEXT_PUBLIC_PROMISE_TOKEN_ID=1");
         console.log("NEXT_PUBLIC_PROMISE_CHAIN_ID=11155111");
         console.log("");
-        console.log("# PRICING");
+        console.log("# Payout");
+        console.log("NEXT_PUBLIC_PAYOUT_ADDRESS=%s", PAYOUT_ADDRESS);
+        console.log("");
+        console.log("# Pricing");
         console.log("NEXT_PUBLIC_PRICE_PER_PACK_WEI=30000000000000000");
         console.log("NEXT_PUBLIC_PRICE_PER_PACK=0.03");
-        console.log("");
-        console.log("=================================================");
-        console.log("ONCHAIN EXECUTION COMPLETE & SUCCESSFUL");
-        console.log("=================================================\n");
+        console.log("\n=================================================\n");
     }
 
     function loadFortuneTexts(Fortune721 fortune) internal {

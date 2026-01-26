@@ -99,10 +99,10 @@ contract DeployComplete is Script {
         console.log("");
         console.log("# Pricing");
         console.log("NEXT_PUBLIC_PRICE_PER_PACK_WEI=30000000000000000");
+        console.log("NEXT_PUBLIC_PRICE_PER_PACK=0.03");
         console.log("");
-        console.log("# RPC");
-        console.log("ALCHEMY_KEY=bgnYFwb8VMoYWaNsIvxFlUQSiZcwM6y9");
-        console.log("INFURA_KEY=d6df61948f584c4385e4b73924d6b532");
+        console.log("# RPC (Local Anvil/Hardhat)");
+        console.log("NEXT_PUBLIC_RPC_URL=http://127.0.0.1:8545");
         console.log("\n=================================================\n");
     }
 
