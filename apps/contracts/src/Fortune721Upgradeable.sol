@@ -13,7 +13,8 @@ import "@openzeppelin-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
 
 /**
  * @title Fortune721Upgradeable
- * @notice UUPS Upgradeable version of ERC721 fortune NFTs with on-chain SVG composition
+ * @notice UUPS Upgradeable ERC721 fortune NFTs with on-chain SVG composition
+ * @dev Composes fortunes from a triptych of 3 cards with A/B text variants
  */
 contract Fortune721Upgradeable is
     Initializable,
@@ -33,7 +34,9 @@ contract Fortune721Upgradeable is
     string public fontURI;
     address public payoutAddress;
     address public admin;
+    address public pack1155;
 
+    /// @notice Mapping: cardId => position => variant => text string
     mapping(uint256 => mapping(uint256 => mapping(uint256 => string))) public fragmentTexts;
 
     struct FortuneData {
@@ -46,23 +49,31 @@ contract Fortune721Upgradeable is
     }
     mapping(uint256 => FortuneData) public fortuneData;
 
+    /// @notice Track last 3 card IDs used for fortune by user
+    mapping(address => uint256[3]) public lastThreeCardsMinted;
+
+    /// @notice Track if fortune was created from the last three cards
+    mapping(address => bool) public fortuneCreatedFromLastThree;
+
     event FortuneMinted(
         address indexed to,
         uint256 indexed tokenId,
         uint256[3] cardIds,
         uint256[3] variants
     );
+    event PayoutAddressUpdated(address indexed oldAddress, address indexed newAddress);
+    event GlobalSaltRotated(bytes32 newSalt);
+    event AdminUpdated(address indexed oldAdmin, address indexed newAdmin);
+    event Pack1155Updated(address indexed newPack1155);
+    event UserResetForNewMintPack(address indexed user);
 
     error InvalidCardId(uint256 cardId);
     error DuplicateCardsInTriptych();
     error InvalidPayoutAddress();
     error WithdrawalFailed();
-
-    event PayoutAddressUpdated(address indexed oldAddress, address indexed newAddress);
-    event GlobalSaltRotated(bytes32 newSalt);
-    event AdminUpdated(address indexed oldAdmin, address indexed newAdmin);
-
     error OnlyOwnerOrAdmin();
+    error OnlyPack1155();
+    error InvalidPack1155();
 
     modifier onlyOwnerOrAdmin() {
         if (msg.sender != owner() && msg.sender != admin) revert OnlyOwnerOrAdmin();
@@ -88,6 +99,11 @@ contract Fortune721Upgradeable is
         payoutAddress = msg.sender;
     }
 
+    /**
+     * @notice Mints a fortune NFT from a triptych of 3 cards
+     * @param cardIds Array of 3 card IDs (must be distinct)
+     * @return tokenId Minted token ID
+     */
     function mintFromTriptych(uint256[3] calldata cardIds)
         external
         nonReentrant
@@ -116,9 +132,30 @@ contract Fortune721Upgradeable is
             variant3: variants[2]
         });
 
+        // Update user's last three cards and fortune creation status
+        lastThreeCardsMinted[msg.sender] = cardIds;
+        fortuneCreatedFromLastThree[msg.sender] = true;
+
         emit FortuneMinted(msg.sender, tokenId, cardIds, variants);
     }
 
+    /**
+     * @notice Resets user's fortune creation status (called when new pack is minted)
+     * @dev Only callable by Pack1155 contract
+     * @param user Address to reset
+     */
+    function resetUserState(address user) external {
+        if (msg.sender != pack1155) revert OnlyPack1155();
+        fortuneCreatedFromLastThree[user] = false;
+        emit UserResetForNewMintPack(user);
+    }
+
+    /**
+     * @notice Generates random variants (A or B) for each position
+     * @param cardIds The 3 card IDs
+     * @param minter Address of minter (for entropy)
+     * @return variants Array of 3 variants (0 or 1)
+     */
     function _generateVariants(uint256[3] calldata cardIds, address minter)
         internal
         view
@@ -142,6 +179,11 @@ contract Fortune721Upgradeable is
         }
     }
 
+    /**
+     * @notice Returns token URI with on-chain text SVG composition
+     * @param tokenId Token ID
+     * @return Base64-encoded JSON with embedded SVG
+     */
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
         _requireOwned(tokenId);
 
@@ -219,6 +261,8 @@ contract Fortune721Upgradeable is
         return string(abi.encodePacked("data:application/json;base64,", Base64.encode(bytes(json))));
     }
 
+    // ============ Admin Functions ============
+
     function setBaseBgCID(string calldata _cid) external onlyOwnerOrAdmin {
         baseBgCID = _cid;
     }
@@ -236,6 +280,27 @@ contract Fortune721Upgradeable is
         fragmentTexts[cardId][position][variant] = text;
     }
 
+    function setFragmentTextBatch(
+        uint256[] calldata cardIds,
+        uint256[] calldata positions,
+        uint256[] calldata variants,
+        string[] calldata texts
+    ) external onlyOwnerOrAdmin {
+        require(
+            cardIds.length == positions.length &&
+            positions.length == variants.length &&
+            variants.length == texts.length,
+            "Length mismatch"
+        );
+
+        for (uint256 i = 0; i < cardIds.length; i++) {
+            if (cardIds[i] >= MAX_CARDS) revert InvalidCardId(cardIds[i]);
+            require(positions[i] >= 1 && positions[i] <= 3, "Invalid position");
+            require(variants[i] <= 1, "Invalid variant");
+            fragmentTexts[cardIds[i]][positions[i]][variants[i]] = texts[i];
+        }
+    }
+
     function setRoyalty(address receiver, uint96 feeNumerator) external onlyOwnerOrAdmin {
         _setDefaultRoyalty(receiver, feeNumerator);
     }
@@ -244,6 +309,12 @@ contract Fortune721Upgradeable is
         address oldAdmin = admin;
         admin = newAdmin;
         emit AdminUpdated(oldAdmin, newAdmin);
+    }
+
+    function setPack1155(address _pack1155) external onlyOwner {
+        if (_pack1155 == address(0)) revert InvalidPack1155();
+        pack1155 = _pack1155;
+        emit Pack1155Updated(_pack1155);
     }
 
     function setPayoutAddress(address newAddress) external onlyOwner {

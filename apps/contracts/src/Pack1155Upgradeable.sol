@@ -10,12 +10,22 @@ import "@openzeppelin-upgradeable/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "./interfaces/IRandomness.sol";
 
-contract Pack1155Upgradeable is 
+interface IFortune721 {
+    function fortuneCreatedFromLastThree(address user) external view returns (bool);
+    function resetUserState(address user) external;
+}
+
+/**
+ * @title Pack1155Upgradeable
+ * @notice UUPS Upgradeable ERC1155 contract for minting card packs
+ * @dev Mints packs of exactly 3 random cards with pluggable randomness
+ */
+contract Pack1155Upgradeable is
     Initializable,
-    ERC1155Upgradeable, 
-    ERC2981Upgradeable, 
-    OwnableUpgradeable, 
-    PausableUpgradeable, 
+    ERC1155Upgradeable,
+    ERC2981Upgradeable,
+    OwnableUpgradeable,
+    PausableUpgradeable,
     ReentrancyGuardUpgradeable,
     UUPSUpgradeable
 {
@@ -27,10 +37,12 @@ contract Pack1155Upgradeable is
     uint256 public entropyEpoch;
     address public gateway;
     address public admin;
+    address public fortune721;
 
     mapping(uint256 => uint256) public maxSupply;
     mapping(uint256 => uint256) public totalMinted;
     mapping(address => bool) public hasMintedPack;
+    mapping(address => uint256[3]) public lastThreeCardsMinted;
 
     event PackMinted(address indexed to, uint256[3] ids, uint256 packIndex);
     event PriceUpdated(uint256 oldPrice, uint256 newPrice);
@@ -39,6 +51,7 @@ contract Pack1155Upgradeable is
     event MaxSupplySet(uint256 indexed id, uint256 maxSupply);
     event GatewayUpdated(address indexed newGateway);
     event AdminUpdated(address indexed oldAdmin, address indexed newAdmin);
+    event Fortune721Updated(address indexed newFortune721);
 
     error InsufficientPayment(uint256 required, uint256 provided);
     error SupplyExhausted(uint256 id);
@@ -46,10 +59,12 @@ contract Pack1155Upgradeable is
     error InvalidPayoutAddress();
     error InvalidRandomnessSource();
     error InvalidGateway();
+    error InvalidFortune721();
     error WithdrawalFailed();
     error OnlyGateway();
     error AlreadyMintedPack();
     error OnlyOwnerOrAdmin();
+    error DuplicateCardsFailed();
 
     modifier onlyOwnerOrAdmin() {
         if (msg.sender != owner() && msg.sender != admin) revert OnlyOwnerOrAdmin();
@@ -84,32 +99,98 @@ contract Pack1155Upgradeable is
         randomnessSource = IRandomness(_randomnessSource);
     }
 
-    function mintPack(address to) 
-        external 
-        payable 
-        nonReentrant 
-        whenNotPaused 
-        returns (uint256[3] memory ids) 
+    /**
+     * @notice Mints exactly 3 random cards to the recipient (requires payment)
+     * @param to Recipient address
+     * @return ids Array of 3 minted card IDs
+     */
+    function mintPack(address to)
+        external
+        payable
+        nonReentrant
+        whenNotPaused
+        returns (uint256[3] memory ids)
     {
         if (msg.value < pricePerPack) {
             revert InsufficientPayment(pricePerPack, msg.value);
         }
+
+        // Check if already minted, allow reset if fortune was created
+        if (hasMintedPack[to]) {
+            if (fortune721 != address(0)) {
+                bool fortuneCreated = _checkFortuneCreated(to);
+                if (!fortuneCreated) {
+                    revert AlreadyMintedPack();
+                }
+                // Reset to allow new mint
+                hasMintedPack[to] = false;
+            } else {
+                revert AlreadyMintedPack();
+            }
+        }
+
         return _mintPackInternal(to);
     }
 
-    function mintPackFree(address to) 
-        external 
-        nonReentrant 
-        whenNotPaused 
-        returns (uint256[3] memory ids) 
+    /**
+     * @notice Mints exactly 3 random cards for free (only callable by gateway)
+     * @param to Recipient address
+     * @return ids Array of 3 minted card IDs
+     */
+    function mintPackFree(address to)
+        external
+        nonReentrant
+        whenNotPaused
+        returns (uint256[3] memory ids)
     {
         if (msg.sender != gateway) revert OnlyGateway();
+        // For burn/redeem, always allow minting (gateway can override the once-per-user limit)
+        hasMintedPack[to] = false;
         return _mintPackInternal(to);
     }
 
-    function _mintPackInternal(address to) 
-        internal 
-        returns (uint256[3] memory ids) 
+    /**
+     * @notice User calls this to reset and mint a new pack after fortune creation
+     * @dev Only callable by user who has created a fortune from their last pack
+     */
+    function resetAndMintNewPack() external payable nonReentrant whenNotPaused returns (uint256[3] memory ids) {
+        if (msg.value < pricePerPack) {
+            revert InsufficientPayment(pricePerPack, msg.value);
+        }
+
+        address user = msg.sender;
+
+        // Check if they previously minted a pack
+        if (!hasMintedPack[user]) {
+            revert AlreadyMintedPack(); // Reuse error: they haven't minted before
+        }
+
+        // Check if fortune was created (via external call to Fortune721)
+        bool fortuneCreated = false;
+        if (fortune721 != address(0)) {
+            fortuneCreated = _checkFortuneCreated(user);
+        }
+
+        // Only allow reset if fortune was created
+        if (!fortuneCreated) {
+            revert AlreadyMintedPack(); // Not allowed to re-mint without fortune
+        }
+
+        // Reset their state BEFORE minting new pack
+        hasMintedPack[user] = false;
+
+        // Now mint the new pack (will set hasMintedPack[user] = true again)
+        return _mintPackInternal(user);
+    }
+
+    /**
+     * @notice Internal function to mint a pack
+     * @param to Recipient address
+     * @return ids Array of 3 minted card IDs
+     */
+    function _mintPackInternal(address to)
+        internal
+        returns (uint256[3] memory ids)
     {
         if (hasMintedPack[to]) revert AlreadyMintedPack();
 
@@ -129,15 +210,45 @@ contract Pack1155Upgradeable is
         amounts[2] = 1;
 
         _mintBatch(to, idsDynamic, amounts, "");
+
+        // Record the last 3 cards minted by this user
+        lastThreeCardsMinted[to] = ids;
+
+        // Reset fortune flag - new cards haven't had a fortune created yet
+        if (fortune721 != address(0)) {
+            try IFortune721(fortune721).resetUserState(to) {} catch {}
+        }
+
         hasMintedPack[to] = true;
 
         emit PackMinted(to, ids, totalMinted[0] / PACK_SIZE);
     }
 
+    /**
+     * @notice Checks if fortune was created for a user
+     * @param user User address to check
+     * @return True if fortune was created from last three cards
+     */
+    function _checkFortuneCreated(address user) internal view returns (bool) {
+        if (fortune721 == address(0)) return false;
+
+        try IFortune721(fortune721).fortuneCreatedFromLastThree(user) returns (bool created) {
+            return created;
+        } catch {
+            return false;
+        }
+    }
+
+    /**
+     * @notice Draws 3 random card IDs with rejection sampling
+     * @param entropy Entropy seed for randomness
+     * @return ids Array of 3 card IDs
+     */
     function _drawCards(bytes32 entropy) internal returns (uint256[3] memory ids) {
         for (uint256 i = 0; i < PACK_SIZE; i++) {
             uint256 attempts = 0;
             uint256 id;
+            bool isDuplicate;
 
             while (attempts < 100) {
                 bytes32 salt = keccak256(abi.encodePacked(entropy, i, attempts));
@@ -145,7 +256,7 @@ contract Pack1155Upgradeable is
                 id = random % maxCardId;
 
                 if (maxSupply[id] == 0 || totalMinted[id] < maxSupply[id]) {
-                    bool isDuplicate = false;
+                    isDuplicate = false;
                     for (uint256 j = 0; j < i; j++) {
                         if (ids[j] == id) {
                             isDuplicate = true;
@@ -160,11 +271,25 @@ contract Pack1155Upgradeable is
             if (maxSupply[id] > 0 && totalMinted[id] >= maxSupply[id]) {
                 revert SupplyExhausted(id);
             }
+            if (isDuplicate) {
+                revert DuplicateCardsFailed();
+            }
 
             ids[i] = id;
             totalMinted[id]++;
         }
     }
+
+    /**
+     * @notice Gets the last 3 cards minted for a user
+     * @param user User address
+     * @return Array of 3 card IDs
+     */
+    function getLastThreeCardsMinted(address user) external view returns (uint256[3] memory) {
+        return lastThreeCardsMinted[user];
+    }
+
+    // ============ Admin Functions ============
 
     function setURI(string memory newURI) external onlyOwnerOrAdmin {
         _setURI(newURI);
@@ -174,6 +299,15 @@ contract Pack1155Upgradeable is
         if (id >= maxCardId) revert InvalidCardId(id);
         maxSupply[id] = supply;
         emit MaxSupplySet(id, supply);
+    }
+
+    function setMaxSupplyBatch(uint256[] calldata ids, uint256[] calldata supplies) external onlyOwnerOrAdmin {
+        require(ids.length == supplies.length, "Length mismatch");
+        for (uint256 i = 0; i < ids.length; i++) {
+            if (ids[i] >= maxCardId) revert InvalidCardId(ids[i]);
+            maxSupply[ids[i]] = supplies[i];
+            emit MaxSupplySet(ids[i], supplies[i]);
+        }
     }
 
     function setPrice(uint256 newPrice) external onlyOwnerOrAdmin {
@@ -199,6 +333,12 @@ contract Pack1155Upgradeable is
         if (newGateway == address(0)) revert InvalidGateway();
         gateway = newGateway;
         emit GatewayUpdated(newGateway);
+    }
+
+    function setFortune721(address newFortune721) external onlyOwner {
+        if (newFortune721 == address(0)) revert InvalidFortune721();
+        fortune721 = newFortune721;
+        emit Fortune721Updated(newFortune721);
     }
 
     function setAdmin(address newAdmin) external onlyOwner {
