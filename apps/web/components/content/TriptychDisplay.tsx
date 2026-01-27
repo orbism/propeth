@@ -1,15 +1,16 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useReadContract, useAccount, usePublicClient } from 'wagmi';
 import { useAppStore } from '@/lib/store';
 import { PACK1155_ADDRESS, PACK1155_ABI } from '@/lib/contracts';
-import { ipfsToGateway } from '@/lib/ipfs';
+import { ipfsToGateway, ipfsToProxy } from '@/lib/ipfs';
 
 interface CardMetadata {
   name: string;
   description: string;
   animation_url: string;
+  image: string;
 }
 
 interface TriptychDisplayProps {
@@ -25,8 +26,6 @@ export function TriptychDisplay({ cardIds: providedCardIds, hasFortune }: Tripty
   const [isLoadingCards, setIsLoadingCards] = useState(!providedCardIds && !triptychIds);
   const [metadataLoaded, setMetadataLoaded] = useState(false);
   const [videosReady, setVideosReady] = useState<boolean[]>([false, false, false]);
-
-  const videoRefs = useRef<(HTMLVideoElement | null)[]>([null, null, null]);
 
   // Use provided cards or from store
   const cardIds = providedCardIds || triptychIds;
@@ -102,7 +101,8 @@ export function TriptychDisplay({ cardIds: providedCardIds, hasFortune }: Tripty
           metadata[i] = {
             name: data.name,
             description: data.description,
-            animation_url: data.animation_url
+            animation_url: data.animation_url,
+            image: data.image
           };
         } catch (error) {
           console.error(`Failed to fetch metadata for card ${i}:`, error);
@@ -110,6 +110,7 @@ export function TriptychDisplay({ cardIds: providedCardIds, hasFortune }: Tripty
       });
 
       await Promise.all(fetchPromises);
+      console.log('[TriptychDisplay] Metadata loaded:', metadata.map(m => m?.animation_url));
       setCardMetadata(metadata);
       setMetadataLoaded(true);
     };
@@ -118,8 +119,9 @@ export function TriptychDisplay({ cardIds: providedCardIds, hasFortune }: Tripty
   }, [metadataUri, cardIds]);
 
   // Handle video ready state
-  const handleVideoCanPlay = (index: number) => {
+  const handleVideoReady = (index: number) => {
     setVideosReady(prev => {
+      if (prev[index]) return prev; // Already marked ready
       const next = [...prev];
       next[index] = true;
       return next;
@@ -138,6 +140,16 @@ export function TriptychDisplay({ cardIds: providedCardIds, hasFortune }: Tripty
   const allMetadataReady = metadataLoaded && cardMetadata.every(m => m !== null);
   const allVideosReady = videosReady.every(v => v);
   const allReady = allMetadataReady && allVideosReady;
+
+  // Fallback timeout - if videos don't fire ready events within 5s, show them anyway
+  useEffect(() => {
+    if (allMetadataReady && !allVideosReady) {
+      const timeout = setTimeout(() => {
+        setVideosReady([true, true, true]);
+      }, 5000);
+      return () => clearTimeout(timeout);
+    }
+  }, [allMetadataReady, allVideosReady]);
 
   // Loading state while fetching cards
   if (isLoadingCards || !cardIds) {
@@ -168,19 +180,19 @@ export function TriptychDisplay({ cardIds: providedCardIds, hasFortune }: Tripty
               </div>
             )}
 
-            {/* Video - hidden until all ready, but loading in background */}
-            {cardMetadata[index]?.animation_url && (
+            {/* Video using proxy for CORS support */}
+            {cardMetadata[index] && (
               <video
-                ref={el => { videoRefs.current[index] = el; }}
                 autoPlay
                 muted
                 loop
                 playsInline
-                onCanPlay={() => handleVideoCanPlay(index)}
-                className={`w-full h-full object-cover ${allReady ? 'opacity-100' : 'opacity-0'}`}
+                onCanPlay={() => handleVideoReady(index)}
+                onLoadedData={() => handleVideoReady(index)}
+                className="w-full h-full object-cover"
               >
                 <source
-                  src={ipfsToGateway(cardMetadata[index]!.animation_url)}
+                  src={ipfsToProxy(cardMetadata[index]!.animation_url)}
                   type="video/mp4"
                 />
               </video>

@@ -12,6 +12,7 @@ interface IBurnAdapter {
      * @param user Address of the token owner
      * @param tokenId Token ID (for ERC721) or ID (for ERC1155)
      * @param amount Amount to burn (1 for ERC721, n for ERC1155)
+     * @return success True if burn was successful
      */
-    function burnFor(address user, uint256 tokenId, uint256 amount) external;
+    function burnFor(address user, uint256 tokenId, uint256 amount) external returns (bool success);
 }

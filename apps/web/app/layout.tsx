@@ -1,10 +1,25 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Providers } from '@/lib/providers';
+import { MusicPlayer } from '@/components/MusicPlayer';
 
 export const metadata: Metadata = {
-  title: 'Bezmiar Fortune Teller',
-  description: 'A mystical Web3 fortune-telling experience',
+  title: 'The Great Propeth',
+  description: 'What does your future hold?',
+  openGraph: {
+    title: 'The Great Propeth',
+    description: 'What does your future hold?',
+    url: 'https://thegreatpropeth.com/',
+    siteName: 'The Great Propeth',
+    images: [{ url: 'https://thegreatpropeth.com/thegreatpropeth.jpg' }],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'The Great Propeth',
+    description: 'What does your future hold?',
+    images: ['https://thegreatpropeth.com/thegreatpropeth.jpg'],
+  },
 };
 
 export default function RootLayout({
@@ -22,6 +37,7 @@ export default function RootLayout({
       </head>
       <body>
         <Providers>{children}</Providers>
+        <MusicPlayer />
       </body>
     </html>
   );

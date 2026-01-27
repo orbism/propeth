@@ -32,6 +32,7 @@ contract BurnRedeemGateway is Ownable, ReentrancyGuard, Pausable {
 
     error NoAdapterSet(address collection);
     error InvalidPack();
+    error BurnFailed();
 
     /**
      * @param _pack Address of Pack1155 contract
@@ -55,8 +56,9 @@ contract BurnRedeemGateway is Ownable, ReentrancyGuard, Pausable {
         IBurnAdapter adapter = adapters[collection];
         if (address(adapter) == address(0)) revert NoAdapterSet(collection);
 
-        // Burn the token via adapter
-        adapter.burnFor(msg.sender, tokenId, amount);
+        // Burn the token via adapter and verify success
+        bool success = adapter.burnFor(msg.sender, tokenId, amount);
+        if (!success) revert BurnFailed();
 
         // Mint pack to user (free - gateway privilege)
         pack.mintPackFree(msg.sender);

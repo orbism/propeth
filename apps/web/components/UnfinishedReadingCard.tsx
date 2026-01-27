@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useReadContract } from 'wagmi';
 import Link from 'next/link';
 import { PACK1155_ADDRESS, PACK1155_ABI } from '@/lib/contracts';
-import { ipfsToGateway } from '@/lib/ipfs';
+import { ipfsToGateway, ipfsToProxy } from '@/lib/ipfs';
 
 interface UnfinishedReadingCardProps {
   cardIds: [bigint, bigint, bigint];
@@ -106,7 +106,7 @@ export function UnfinishedReadingCard({ cardIds }: UnfinishedReadingCardProps) {
                   className={`w-full h-full object-cover ${allReady ? 'opacity-100' : 'opacity-0'}`}
                 >
                   <source
-                    src={ipfsToGateway(cardMetadata[i]!.animation_url)}
+                    src={ipfsToProxy(cardMetadata[i]!.animation_url)}
                     type="video/mp4"
                   />
                 </video>

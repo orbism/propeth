@@ -1,43 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createPublicClient, http, type Address } from 'viem';
-import { mainnet, foundry } from 'viem/chains';
+import { mainnet, sepolia, foundry } from 'viem/chains';
 
 const PROMISE_CONTRACT = (process.env.NEXT_PUBLIC_PROMISE_CONTRACT || '') as Address;
 const PROMISE_CHAIN_ID = Number(process.env.NEXT_PUBLIC_PROMISE_CHAIN_ID || '1');
+const PROMISE_TOKEN_ID = BigInt(process.env.NEXT_PUBLIC_PROMISE_TOKEN_ID || '1');
 const ALCHEMY_KEY = process.env.ALCHEMY_KEY || '';
 const INFURA_KEY = process.env.INFURA_KEY || '';
 
 console.log('🔧 [API /api/holds] Env loaded', {
   contract: PROMISE_CONTRACT,
   chainId: PROMISE_CHAIN_ID,
+  tokenId: PROMISE_TOKEN_ID.toString(),
 });
 
-// ERC-721 balanceOf ABI (for checking any NFT ownership in collection)
-const ERC721_ABI = [
+// ERC-1155 balanceOf ABI (requires address AND token ID)
+const ERC1155_ABI = [
   {
     type: 'function',
     name: 'balanceOf',
     inputs: [
-      { name: 'owner', type: 'address' },
-    ],
-    outputs: [{ name: '', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'tokenByIndex',
-    inputs: [
-      { name: 'index', type: 'uint256' },
-    ],
-    outputs: [{ name: '', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'tokenOfOwnerByIndex',
-    inputs: [
-      { name: 'owner', type: 'address' },
-      { name: 'index', type: 'uint256' },
+      { name: 'account', type: 'address' },
+      { name: 'id', type: 'uint256' },
     ],
     outputs: [{ name: '', type: 'uint256' }],
     stateMutability: 'view',
@@ -72,38 +56,55 @@ export async function GET(req: NextRequest) {
 
   try {
     // Determine chain and transport based on PROMISE_CHAIN_ID
-    const chain = PROMISE_CHAIN_ID === 1337 ? foundry : mainnet;
-    
-    const transport = PROMISE_CHAIN_ID === 1337
-      ? http('http://127.0.0.1:8545') // Local Anvil
-      : ALCHEMY_KEY
-      ? http(`https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`)
-      : INFURA_KEY
-      ? http(`https://mainnet.infura.io/v3/${INFURA_KEY}`)
-      : http(); // fallback to public RPC
+    let chain;
+    let transport;
+
+    if (PROMISE_CHAIN_ID === 1337) {
+      // Local Anvil
+      chain = foundry;
+      transport = http('http://127.0.0.1:8545');
+    } else if (PROMISE_CHAIN_ID === 11155111) {
+      // Sepolia testnet
+      chain = sepolia;
+      transport = INFURA_KEY
+        ? http(`https://sepolia.infura.io/v3/${INFURA_KEY}`)
+        : ALCHEMY_KEY
+        ? http(`https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_KEY}`)
+        : http('https://rpc.sepolia.org');
+    } else {
+      // Mainnet (default)
+      chain = mainnet;
+      transport = INFURA_KEY
+        ? http(`https://mainnet.infura.io/v3/${INFURA_KEY}`)
+        : ALCHEMY_KEY
+        ? http(`https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`)
+        : http();
+    }
 
     const client = createPublicClient({
       chain,
       transport,
     });
 
-    console.log('📡 [API /api/holds] Checking NFT ownership (ERC721)...');
+    console.log('📡 [API /api/holds] Checking NFT ownership (ERC1155)...', {
+      tokenId: PROMISE_TOKEN_ID.toString(),
+    });
 
-    // Check if the owner owns any tokens
+    // Check if the owner owns the specific token ID (ERC-1155)
     let holds = false;
-    let ownedTokens: string[] = [];
     try {
       const balance = await client.readContract({
         address: PROMISE_CONTRACT,
-        abi: ERC721_ABI,
+        abi: ERC1155_ABI,
         functionName: 'balanceOf',
-        args: [owner],
+        args: [owner, PROMISE_TOKEN_ID],
       });
 
       holds = balance > BigInt(0);
 
       console.log('✅ [API /api/holds] Ownership check complete', {
         owner,
+        tokenId: PROMISE_TOKEN_ID.toString(),
         balance: balance.toString(),
         holds,
       });
@@ -115,10 +116,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       holds,
       balance: holds ? '1' : '0',
-      ownedTokens: [], // Don't try to enumerate - let frontend handle discovery
+      tokenId: PROMISE_TOKEN_ID.toString(),
       debug: {
         owner,
         contract: PROMISE_CONTRACT,
+        chainId: PROMISE_CHAIN_ID,
+        tokenId: PROMISE_TOKEN_ID.toString(),
         timestamp: new Date().toISOString(),
       },
     });
@@ -136,6 +139,8 @@ export async function GET(req: NextRequest) {
         debug: {
           owner,
           contract: PROMISE_CONTRACT,
+          chainId: PROMISE_CHAIN_ID,
+          tokenId: PROMISE_TOKEN_ID.toString(),
         },
       },
       { status: 500 }

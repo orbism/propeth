@@ -28,9 +28,12 @@ contract DeadTransfer1155 is IBurnAdapter {
      * @param user Token owner (must have approved gateway)
      * @param tokenId Token ID to burn
      * @param amount Amount to burn
+     * @return True if burn was successful
      */
-    function burnFor(address user, uint256 tokenId, uint256 amount) external {
+    function burnFor(address user, uint256 tokenId, uint256 amount) external returns (bool) {
         // Transfer directly to dead address
         collection.safeTransferFrom(user, DEAD_ADDRESS, tokenId, amount, "");
+
+        return true;
     }
 }

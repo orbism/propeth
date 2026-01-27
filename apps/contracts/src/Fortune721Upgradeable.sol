@@ -11,6 +11,11 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin-upgradeable/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
 
+interface IPack1155 {
+    function getLastThreeCardsMinted(address user) external view returns (uint256[3] memory);
+    function hasMintedPack(address user) external view returns (bool);
+}
+
 /**
  * @title Fortune721Upgradeable
  * @notice UUPS Upgradeable ERC721 fortune NFTs with on-chain SVG composition
@@ -74,6 +79,9 @@ contract Fortune721Upgradeable is
     error OnlyOwnerOrAdmin();
     error OnlyPack1155();
     error InvalidPack1155();
+    error Pack1155NotSet();
+    error UserHasNotMintedPack();
+    error CardNotFromLastPack(uint256 cardId);
 
     modifier onlyOwnerOrAdmin() {
         if (msg.sender != owner() && msg.sender != admin) revert OnlyOwnerOrAdmin();
@@ -101,7 +109,7 @@ contract Fortune721Upgradeable is
 
     /**
      * @notice Mints a fortune NFT from a triptych of 3 cards
-     * @param cardIds Array of 3 card IDs (must be distinct)
+     * @param cardIds Array of 3 card IDs (must be distinct and match user's last minted pack)
      * @return tokenId Minted token ID
      */
     function mintFromTriptych(uint256[3] calldata cardIds)
@@ -110,12 +118,37 @@ contract Fortune721Upgradeable is
         whenNotPaused
         returns (uint256 tokenId)
     {
+        // Validate card IDs are within range
         for (uint256 i = 0; i < 3; i++) {
             if (cardIds[i] >= MAX_CARDS) revert InvalidCardId(cardIds[i]);
         }
 
+        // Validate no duplicates
         if (cardIds[0] == cardIds[1] || cardIds[0] == cardIds[2] || cardIds[1] == cardIds[2]) {
             revert DuplicateCardsInTriptych();
+        }
+
+        // Validate cards match user's last minted pack from Pack1155
+        if (pack1155 == address(0)) revert Pack1155NotSet();
+
+        // Check user has minted a pack
+        if (!IPack1155(pack1155).hasMintedPack(msg.sender)) revert UserHasNotMintedPack();
+
+        // Get the cards they were actually minted
+        uint256[3] memory expectedCards = IPack1155(pack1155).getLastThreeCardsMinted(msg.sender);
+
+        // Validate all provided cards match expected (order-independent)
+        bool[3] memory matched;
+        for (uint256 i = 0; i < 3; i++) {
+            bool found = false;
+            for (uint256 j = 0; j < 3; j++) {
+                if (!matched[j] && cardIds[i] == expectedCards[j]) {
+                    matched[j] = true;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) revert CardNotFromLastPack(cardIds[i]);
         }
 
         uint256[3] memory variants = _generateVariants(cardIds, msg.sender);

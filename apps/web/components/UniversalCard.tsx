@@ -33,7 +33,7 @@ export function UniversalCard() {
 
   const { mintPack, isPending: isMintingPack, error: mintPackError, hash: packHash } = useMintPack();
   const { mintFortune, isPending: isMintingFortune, error: mintFortuneError, userError: fortuneUserError, hash: fortuneHash } = useMintFortune();
-  const { burnAndMint, isPending: isBurning, phase: burnPhase } = useBurnAndMint();
+  const { burnAndMint, isPending: isBurning, phase: burnPhase, error: burnError } = useBurnAndMint();
 
   // Debug logging for burn phase
   useEffect(() => {
@@ -70,21 +70,21 @@ export function UniversalCard() {
 
   const handleBurnProceed = () => {
     if (address) {
-      const promiseNftAddress = process.env.NEXT_PUBLIC_PROMISE_NFT as `0x${string}`;
+      const promiseNftAddress = process.env.NEXT_PUBLIC_PROMISE_CONTRACT as `0x${string}`;
       if (!promiseNftAddress) {
-        console.error('NEXT_PUBLIC_PROMISE_NFT not configured');
+        console.error('NEXT_PUBLIC_PROMISE_CONTRACT not configured');
         alert('Promise NFT address not configured. Check .env.local');
         return;
       }
-      
-      // Try to use owned token IDs from API, fallback to sequential search (0, 1, 2, ...)
-      // The hook will detect if the transaction fails and try the next ID
-      const tokenIdToBurn = ownedTokenIds.length > 0 
-        ? BigInt(ownedTokenIds[0]) 
-        : BigInt(0); // Will iterate if this one fails
-      
+
+      // Use owned token IDs from API, or fallback to configured token ID
+      const configuredTokenId = BigInt(process.env.NEXT_PUBLIC_PROMISE_TOKEN_ID || '1');
+      const tokenIdToBurn = ownedTokenIds.length > 0
+        ? BigInt(ownedTokenIds[0])
+        : configuredTokenId;
+
       console.log('[UniversalCard] Attempting to burn token ID:', tokenIdToBurn.toString());
-      
+
       setCurrentStep('minting');
       burnAndMint(promiseNftAddress, tokenIdToBurn);
     }
@@ -113,19 +113,29 @@ export function UniversalCard() {
         return <BurnExplainer onProceed={handleBurnProceed} />;
       
       case 'minting':
+        // Determine message based on burn phase
+        const getBurnMessage = () => {
+          if (burnPhase === 'approval') {
+            return 'Step 1/2: Approving Promise NFT for burn...';
+          } else if (burnPhase === 'burn') {
+            return 'Step 2/2: Burning Promise & minting cards...';
+          }
+          return 'Preparing burn transaction...';
+        };
+
         return (
           <MintLoader
-            status={mintPackError || mintFortuneError ? 'error' : ((isMintingPack || isBurning) ? 'confirming' : 'pending')}
+            status={mintPackError || mintFortuneError || burnError ? 'error' : ((isMintingPack || isBurning) ? 'confirming' : 'pending')}
             message={
               isMintingPack ? 'Creating your three fortune cards...' :
-              isBurning ? 'Burning your Promise NFT...' :
+              isBurning ? getBurnMessage() :
               isMintingFortune ? 'Creating your final fortune...' :
               'Waiting for transaction...'
             }
             txHash={packHash || undefined}
-            error={mintPackError || mintFortuneError}
+            error={mintPackError || mintFortuneError || burnError}
             onClose={() => {
-              if (mintPackError || mintFortuneError) {
+              if (mintPackError || mintFortuneError || burnError) {
                 setCurrentStep('landing');
               }
             }}

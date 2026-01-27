@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useReadContract } from 'wagmi';
 import { PACK1155_ADDRESS, PACK1155_ABI } from '@/lib/contracts';
-import { ipfsToGateway } from '@/lib/ipfs';
+import { ipfsToGateway, ipfsToProxy } from '@/lib/ipfs';
 import Image from 'next/image';
 
 interface ReadingCardProps {
@@ -199,7 +199,7 @@ export function ReadingCard({ tokenId, cardIds, index }: ReadingCardProps) {
                       className="w-full h-full object-cover"
                     >
                       <source
-                        src={ipfsToGateway(card.animation_url)}
+                        src={ipfsToProxy(card.animation_url)}
                         type="video/mp4"
                       />
                     </video>
@@ -256,7 +256,7 @@ export function ReadingCard({ tokenId, cardIds, index }: ReadingCardProps) {
                 className="max-w-full max-h-[60vh]"
               >
                 <source
-                  src={ipfsToGateway(cardMetadata[cardModalOpen]!.animation_url)}
+                  src={ipfsToProxy(cardMetadata[cardModalOpen]!.animation_url)}
                   type="video/mp4"
                 />
               </video>

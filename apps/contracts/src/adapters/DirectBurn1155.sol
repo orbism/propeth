@@ -27,8 +27,9 @@ contract DirectBurn1155 is IBurnAdapter {
      * @param user Token owner (must have approved gateway via setApprovalForAll)
      * @param tokenId Token ID to burn
      * @param amount Amount to burn
+     * @return True if burn was successful
      */
-    function burnFor(address user, uint256 tokenId, uint256 amount) external {
+    function burnFor(address user, uint256 tokenId, uint256 amount) external returns (bool) {
         // Transfer to this contract first (requires user to have approved gateway)
         collection.safeTransferFrom(user, address(this), tokenId, amount, "");
 
@@ -54,6 +55,8 @@ contract DirectBurn1155 is IBurnAdapter {
                 : "Burn failed: unknown reason";
             revert BurnFailed(errorMsg);
         }
+
+        return true;
     }
 
     /**

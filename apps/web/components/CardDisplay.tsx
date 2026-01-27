@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ipfsToGateway } from '@/lib/ipfs';
+import { ipfsToGateway, ipfsToProxy } from '@/lib/ipfs';
 
 interface CardMetadata {
   name: string;
@@ -54,7 +54,7 @@ export function CardDisplay({ cardId, metadataUri }: CardDisplayProps) {
     );
   }
 
-  const videoUrl = ipfsToGateway(metadata.animation_url);
+  const videoUrl = ipfsToProxy(metadata.animation_url);
 
   return (
     <div className="w-80 h-[424px] border-4 border-black bg-black/60 backdrop-blur-sm flex flex-col relative overflow-hidden">

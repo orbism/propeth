@@ -27,8 +27,9 @@ contract DirectBurn721 is IBurnAdapter {
      * @param user Token owner (must have approved gateway)
      * @param tokenId Token ID to burn
      * @param amount Must be 1 for ERC721
+     * @return True if burn was successful
      */
-    function burnFor(address user, uint256 tokenId, uint256 amount) external {
+    function burnFor(address user, uint256 tokenId, uint256 amount) external returns (bool) {
         if (amount != 1) revert InvalidAmount();
 
         // Transfer to this contract first
@@ -38,13 +39,15 @@ contract DirectBurn721 is IBurnAdapter {
         (bool success, bytes memory reason) = address(collection).call(
             abi.encodeWithSignature("burn(uint256)", tokenId)
         );
-        
+
         if (!success) {
             // Provide more detailed error information
-            string memory errorMsg = reason.length > 0 
-                ? string(reason) 
+            string memory errorMsg = reason.length > 0
+                ? string(reason)
                 : "Burn failed: unknown reason";
             revert BurnFailed(errorMsg);
         }
+
+        return true;
     }
 }

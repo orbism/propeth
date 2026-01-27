@@ -1,10 +1,32 @@
 import { createPublicClient, http } from 'viem';
-import { mainnet } from 'viem/chains';
+import { mainnet, sepolia, foundry } from 'viem/chains';
 import { NextRequest } from 'next/server';
 import { FORTUNE721_ABI } from '@/lib/contracts';
 
 const FORTUNE721_ADDRESS = process.env.NEXT_PUBLIC_FORTUNE721 as `0x${string}`;
-const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || 'http://localhost:8545';
+const CHAIN_ID = Number(process.env.NEXT_PUBLIC_CHAIN_ID || '1');
+const ALCHEMY_KEY = process.env.ALCHEMY_KEY || '';
+const INFURA_KEY = process.env.INFURA_KEY || '';
+
+function getChainAndTransport() {
+  if (CHAIN_ID === 1337) {
+    return { chain: foundry, transport: http('http://127.0.0.1:8545') };
+  } else if (CHAIN_ID === 11155111) {
+    const transport = INFURA_KEY
+      ? http(`https://sepolia.infura.io/v3/${INFURA_KEY}`)
+      : ALCHEMY_KEY
+      ? http(`https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_KEY}`)
+      : http('https://rpc.sepolia.org');
+    return { chain: sepolia, transport };
+  } else {
+    const transport = INFURA_KEY
+      ? http(`https://mainnet.infura.io/v3/${INFURA_KEY}`)
+      : ALCHEMY_KEY
+      ? http(`https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`)
+      : http();
+    return { chain: mainnet, transport };
+  }
+}
 
 export async function GET(
   request: NextRequest,
@@ -13,9 +35,11 @@ export async function GET(
   try {
     const { tokenId } = await params;
 
-    // Create viem client
+    // Create viem client with proper chain configuration
+    const { chain, transport } = getChainAndTransport();
     const client = createPublicClient({
-      transport: http(RPC_URL),
+      chain,
+      transport,
     });
 
     // Call tokenURI on contract

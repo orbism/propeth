@@ -30,11 +30,14 @@ contract DeadTransfer721 is IBurnAdapter {
      * @param user Token owner (must have approved gateway)
      * @param tokenId Token ID to burn
      * @param amount Must be 1 for ERC721
+     * @return True if burn was successful
      */
-    function burnFor(address user, uint256 tokenId, uint256 amount) external {
+    function burnFor(address user, uint256 tokenId, uint256 amount) external returns (bool) {
         if (amount != 1) revert InvalidAmount();
 
         // Transfer directly to dead address
         collection.transferFrom(user, DEAD_ADDRESS, tokenId);
+
+        return true;
     }
 }
