@@ -13,13 +13,13 @@ export function MusicPlayer() {
     if (stored !== null) {
       setIsMuted(stored === 'true');
     }
-    // Attempt autoplay on mount
-    if (audioRef.current) {
-      audioRef.current.play().catch(() => {
-        // Browser blocked autoplay, show play button
-        setIsMuted(true);
-      });
-    }
+    // // Attempt autoplay on mount
+    // if (audioRef.current) {
+    //   audioRef.current.play().catch(() => {
+    //     // Browser blocked autoplay, show play button
+    //     setIsMuted(true);
+    //   });
+    // }
   }, []);
 
   useEffect(() => {
@@ -34,6 +34,26 @@ export function MusicPlayer() {
     }
   }, [isMuted]);
 
+  useEffect(() => {
+    const unlock = () => {
+      if (!audioRef.current) return;
+      audioRef.current.muted = false;
+      audioRef.current.currentTime = 0.06;
+      audioRef.current.play().catch(() => {});
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('keydown', unlock);
+    };
+  
+    window.addEventListener('pointerdown', unlock, { once: true });
+    window.addEventListener('keydown', unlock, { once: true });
+  
+    return () => {
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('keydown', unlock);
+    };
+  }, []);
+  
+
   const toggleMute = () => {
     const newMuted = !isMuted;
     setIsMuted(newMuted);
@@ -42,7 +62,7 @@ export function MusicPlayer() {
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
-      <audio ref={audioRef} src="/audiio/knightxd.mp3" loop />
+      <audio ref={audioRef} src="/audiio/knightxd.mp3" loop muted playsInline />
       <button
         onClick={toggleMute}
         className="w-16 h-16 cursor-pointer bg-transparent border-none p-0 transition-all duration-200 hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]"
