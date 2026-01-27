@@ -33,7 +33,7 @@ yarn-error.log*
 **/broadcast/
 # Foundry
 **/out/
-**/lib/
+apps/contracts/lib/
 foundry.toml.local
 
 # ---- Misc package managers
