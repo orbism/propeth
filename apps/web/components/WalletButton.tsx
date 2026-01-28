@@ -48,13 +48,13 @@ export function WalletButton({ externalOpen = false, onRequestClose }: WalletBut
       </button>
 
       <ModalFrame isOpen={showModal} onClose={closeModal}>
-        <h2 className="text-4xl font-bold mb-8">Connect Wallet</h2>
+        <h2 className="text-4xl font-bold mb-8 jacquard-12">Connect Wallet</h2>
         <div className="space-y-6 text-2xl">
           {connectors.map((connector) => (
             <button
               key={connector.uid}
               onClick={() => handleConnect(connector)}
-              className="w-full px-8 py-6 border-2 border-white text-white hover:bg-white hover:text-black transition-all duration-300 text-left"
+              className="w-full px-8 py-6 border-2 border-white text-white hover:bg-white hover:text-black transition-all duration-300 text-left jacquard-12"
             >
               {connector.name}
             </button>

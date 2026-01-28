@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+/* Jersey 10 font for body text */
+@font-face {
+  font-family: 'Jersey 10';
+  src: url('/fonts/Jersey10-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #000000;
@@ -35,8 +44,7 @@ html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
-  font-family: "Jacquard 12", system-ui;
-
+  font-family: "Jersey 10", system-ui;
 }
 
 a {
@@ -102,9 +110,14 @@ h2, h3 {
   transition: opacity 0.3s ease-in-out;
 }
 
-/* Jacquard 12 font for all text */
+/* Jacquard 12 font for titles and buttons */
 .jacquard-12 {
   font-family: "Jacquard 12", system-ui;
+}
+
+/* Jersey 10 font for body text (explicit use) */
+.jersey-10 {
+  font-family: "Jersey 10", system-ui;
 }
 
 .larger {

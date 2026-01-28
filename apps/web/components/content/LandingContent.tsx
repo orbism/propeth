@@ -102,23 +102,51 @@ export function LandingContent() {
 
       {/* Info Modal */}
       <ModalFrame isOpen={showInfoModal} onClose={() => setShowInfoModal(false)}>
-        <h2 className="!text-5xl mb-8 !pb-2 text-center">About The Great Propeth</h2>
-        <div className="font-regular text-xl !space-y-6 text-left mx-auto">
-          <p>
-            The Great Propeth is an ancient mystical entity that has gazed into the infinite
-            void and returned with visions of what may come to pass.
-          </p>
-          <p>
-            Through the power of the Triptych and the Final Revelation, you may glimpse
-            fragments of your destiny as interpreted by The Great Propeth's infinite wisdom.
-          </p>
-          <p>
-            Each fortune is composed of three mystical cards that form a unique narrative,
-            culminating in the fourth card that reveals the complete prophecy.
-          </p>
-          <p className="text-xl opacity-70 mt-6 text-right">
-            Built on Ethereum. Powered by mysticism and mathematics.
-          </p>
+        <div className="flex gap-8 min-h-[580px] max-w-2xl mx-auto">
+          {/* Left column - icons at bottom */}
+          <div className="flex-shrink-0 w-[200px] flex flex-col justify-end !pl-20 !mb-4">
+            <img src="/images/about.svg" alt="" className="w-[100px] h-auto brightness-0 invert" />
+          </div>
+
+          {/* Right column - all left-justified */}
+          <div className="flex-1 text-left">
+            {/* Logo image instead of text */}
+            <img src="/images/logo.png" alt="The Great Propeth" className="h-38 mb-4" />
+
+            {/* Subtitle - Jacquard, large */}
+            <p className="!text-5xl jacquard-12 !py-6">The Path of Revelation</p>
+
+            {/* Intro - larger */}
+            <p className="!text-2xl !mb-5 opacity-90">
+              Step into the unknown with The Great Propeth - an ancient entity
+              that has whispered truths about your fate.
+            </p>
+
+            {/* 3 Sections - larger text */}
+            <div className="space-y-6">
+              <div>
+                <h3 className="!text-3xl jacquard-12 !mb-2">1. The Offering</h3>
+                <p className="!text-2xl opacity-80 !mb-4">
+                  Burn A Promise to awaken the machine,
+                  or pay 0.03 of your Ether in tribute.
+                </p>
+              </div>
+              <div>
+                <h3 className="!text-3xl jacquard-12 !mb-2">2. The Oracle</h3>
+                <p className="!text-2xl opacity-80 !mb-4">
+                  The Great Propeth will summon three Arcana cards
+                  to reveal fragments of your destiny.
+                </p>
+              </div>
+              <div>
+                <h3 className="!text-3xl jacquard-12 !mb-2">3. The Final Revelation</h3>
+                <p className="!text-2xl opacity-80 !mb-4">
+                  Receive the fourth and final card
+                  your complete prophecy forever written on-chain
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </ModalFrame>
     </>

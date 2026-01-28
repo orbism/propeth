@@ -114,7 +114,7 @@ export function UnfinishedReadingCard({ cardIds }: UnfinishedReadingCardProps) {
 
               {/* Card name overlay */}
               {allReady && (
-                <div className="absolute bottom-0 left-0 right-0 bg-black/80 text-white text-sm p-2 text-center truncate jacquard-12">
+                <div className="absolute bottom-0 left-0 right-0 bg-black/80 text-white text-sm p-2 text-center truncate">
                   {cardMetadata[i]?.name || `#${id}`}
                 </div>
               )}

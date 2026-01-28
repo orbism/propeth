@@ -30,7 +30,7 @@ export function FortuneDisplay({ tokenId }: FortuneDisplayProps) {
         <div className="!flex !flex-col !gap-2 !items-center">
           <button
             onClick={handleBackToFate}
-            className="px-12 !pt-4 !-mb-4 !text-xl font-bold border-4 border-white text-white hover:bg-white hover:text-black transition-all duration-300"
+            className="px-12 !pt-4 !-mb-4 !text-xl font-bold border-4 border-white text-white hover:bg-white hover:text-black transition-all duration-300 jacquard-12"
           >
             go back to fate cards
           </button>

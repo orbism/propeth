@@ -172,7 +172,7 @@ export function ReadingCard({ tokenId, cardIds, index }: ReadingCardProps) {
 
         {/* Triptych Cards */}
         <div className="mt-8">
-          <p className="text-xl text-white/70 mb-6 jacquard-12">Your 3 cards for this reading:</p>
+          <p className="text-xl text-white/70 mb-6">Your 3 cards for this reading:</p>
 
           {loading ? (
             <div className="flex justify-center gap-6">
@@ -208,7 +208,7 @@ export function ReadingCard({ tokenId, cardIds, index }: ReadingCardProps) {
                       Card {cardIds[i]}
                     </div>
                   )}
-                  <div className="absolute bottom-0 left-0 right-0 bg-black/80 text-white text-sm p-2 text-center truncate jacquard-12">
+                  <div className="absolute bottom-0 left-0 right-0 bg-black/80 text-white text-sm p-2 text-center truncate">
                     {card?.name || `#${cardIds[i]}`}
                   </div>
                 </div>

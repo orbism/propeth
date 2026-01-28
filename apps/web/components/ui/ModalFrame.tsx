@@ -33,7 +33,7 @@ export function ModalFrame({ isOpen, onClose, children }: ModalFrameProps) {
           </button>
         )}
 
-        <div className="relative z-10 px-8 py-8 !pt-6 text-white jacquard-12">{children}</div>
+        <div className="relative z-10 px-8 py-8 !pt-6 text-white">{children}</div>
       </div>
     </div>
   );

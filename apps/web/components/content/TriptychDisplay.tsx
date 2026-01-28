@@ -210,7 +210,7 @@ export function TriptychDisplay({ cardIds: providedCardIds, hasFortune }: Tripty
       <button
         onClick={handleContinue}
         disabled={!allReady}
-        className={`px-16 py-8 !text-4xl font-bold border-4 border-white text-white transition-all duration-300 backdrop-blur-sm ${
+        className={`px-16 py-8 !text-4xl font-bold border-4 border-white text-white transition-all duration-300 backdrop-blur-sm jacquard-12 ${
           allReady
             ? 'hover:bg-white hover:text-black cursor-pointer'
             : 'opacity-50 cursor-not-allowed'

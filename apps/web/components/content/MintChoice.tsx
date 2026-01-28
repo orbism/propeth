@@ -50,7 +50,7 @@ export function MintChoice({ onBurnProceed, onContinueProceed }: MintChoiceProps
               </div>
               <button
                 onClick={handleBurn}
-                className="!px-12 !py-6 !text-4xl blink font-bold border-4 border-white text-white hover:bg-white hover:text-black transition-all duration-300"
+                className="!px-12 !py-6 !text-4xl blink font-bold border-4 border-white text-white hover:bg-white hover:text-black transition-all duration-300 jacquard-12"
                 style={{
                   animation: 'blink 1.2s infinite',
                 }}
@@ -78,7 +78,7 @@ export function MintChoice({ onBurnProceed, onContinueProceed }: MintChoiceProps
               </div>
               <button
                 onClick={handleContinue}
-                className="!px-12 !py-6 !text-4xl blink font-bold border-4 border-white text-white hover:bg-white hover:text-black transition-all duration-300"
+                className="!px-12 !py-6 !text-4xl blink font-bold border-4 border-white text-white hover:bg-white hover:text-black transition-all duration-300 jacquard-12"
                 style={{
                   animation: 'blink 1.2s infinite',
                 }}

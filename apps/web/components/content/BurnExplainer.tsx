@@ -43,13 +43,13 @@ export function BurnExplainer({ onProceed }: BurnExplainerProps) {
           <div className="flex gap-4">
             <button
               onClick={handleCancel}
-              className="!border !border-red-800 !rounded flex-1 px-6 !py-3 hover:bg-white/10 transition-colors !text-2xl"
+              className="!border !border-red-800 !rounded flex-1 px-6 !py-3 hover:bg-white/10 transition-colors !text-2xl jacquard-12"
             >
               Cancel
             </button>
             <button
               onClick={onProceed}
-              className="!border !border-green-800 flex-1 px-6 py-3 !hover:bg-black hover:text-white transition-colors font-semibold !text-2xl"
+              className="!border !border-green-800 flex-1 px-6 py-3 !hover:bg-black hover:text-white transition-colors font-semibold !text-2xl jacquard-12"
             >
               Proceed to Burn
             </button>
