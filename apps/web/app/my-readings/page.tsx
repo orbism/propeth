@@ -99,7 +99,7 @@ export default function MyReadingsPage() {
               {/* Completed Readings */}
               {fortunes.map((fortune, index) => (
                 <ReadingCard
-                  key={fortune.tokenId.toString()}
+                  key={fortune.tokenId}
                   tokenId={fortune.tokenId}
                   cardIds={fortune.cardIds}
                   index={fortunes.length - index - 1}

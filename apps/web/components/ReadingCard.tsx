@@ -7,8 +7,8 @@ import { ipfsToGateway, ipfsToProxy } from '@/lib/ipfs';
 import Image from 'next/image';
 
 interface ReadingCardProps {
-  tokenId: bigint;
-  cardIds: [bigint, bigint, bigint];
+  tokenId: string;
+  cardIds: [string, string, string];
   index: number;
 }
 
@@ -141,7 +141,7 @@ export function ReadingCard({ tokenId, cardIds, index }: ReadingCardProps) {
       <div className="text-center">
         {/* Header - Fortune # centered */}
         <h3 className="text-6xl jacquard-12 text-white mb-8">
-          Fortune #{tokenId.toString()}
+          Fortune #{tokenId}
         </h3>
 
         {/* Fortune SVG - Clickable to expand */}
@@ -205,11 +205,11 @@ export function ReadingCard({ tokenId, cardIds, index }: ReadingCardProps) {
                     </video>
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-white/50">
-                      Card {cardIds[i].toString()}
+                      Card {cardIds[i]}
                     </div>
                   )}
                   <div className="absolute bottom-0 left-0 right-0 bg-black/80 text-white text-sm p-2 text-center truncate jacquard-12">
-                    {card?.name || `#${cardIds[i].toString()}`}
+                    {card?.name || `#${cardIds[i]}`}
                   </div>
                 </div>
               ))}
@@ -228,7 +228,7 @@ export function ReadingCard({ tokenId, cardIds, index }: ReadingCardProps) {
       <OverlayModal isOpen={fortuneModalOpen} onClose={closeFortuneModal}>
         <div className="flex flex-col items-center justify-center p-4">
           <h3 className="text-4xl jacquard-12 text-white mb-6">
-            Fortune #{tokenId.toString()}
+            Fortune #{tokenId}
           </h3>
           {fortuneSvg && (
             <object
@@ -245,7 +245,7 @@ export function ReadingCard({ tokenId, cardIds, index }: ReadingCardProps) {
         {cardModalOpen !== null && cardMetadata[cardModalOpen] && (
           <div className="flex flex-col items-center justify-center p-4">
             <h3 className="text-3xl jacquard-12 text-white mb-6">
-              {cardMetadata[cardModalOpen]?.name || `Card #${cardIds[cardModalOpen].toString()}`}
+              {cardMetadata[cardModalOpen]?.name || `Card #${cardIds[cardModalOpen]}`}
             </h3>
             {cardMetadata[cardModalOpen]?.animation_url && (
               <video

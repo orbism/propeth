@@ -1,8 +1,9 @@
 'use client';
 
-import { useAccount } from 'wagmi';
+import { useAccount, useBalance } from 'wagmi';
 import { useAppStore } from '@/lib/store';
 import { OPENSEA_ITEM_URL } from '@/lib/env';
+import { PRICE_PER_PACK } from '@/lib/contracts';
 
 interface MintChoiceProps {
   onBurnProceed: () => void;
@@ -11,6 +12,9 @@ interface MintChoiceProps {
 
 export function MintChoice({ onBurnProceed, onContinueProceed }: MintChoiceProps) {
   const { isPromiseHolder, setCurrentStep } = useAppStore();
+  const { address } = useAccount();
+  const { data: balance } = useBalance({ address });
+  const hasEnoughEth = balance && balance.value >= PRICE_PER_PACK;
 
   const handleBurn = () => {
     setCurrentStep('burn-explainer');
@@ -54,13 +58,13 @@ export function MintChoice({ onBurnProceed, onContinueProceed }: MintChoiceProps
                 <span className="larger">Burn</span>
               </button>
             </div>
-          ) : (
+          ) : hasEnoughEth ? (
             <div className="text-center p-8">
               <h3 className="text-3xl mb-4 text-red-400 !m-3">
                 You do not have A Promise
               </h3>
               <p className="text-3xl block relative !mb-6 !mt-3">
-                However, you may continue with a fortune by <br />inserting 0.02 coins.
+                However, you may continue with a fortune by <br />inserting 0.03 coins.
               </p>
               <div className="text-2xl opacity-70 mb-4">
                 <a
@@ -80,6 +84,19 @@ export function MintChoice({ onBurnProceed, onContinueProceed }: MintChoiceProps
                 }}
               >
                 Continue <br />(0.03 coins)
+              </button>
+            </div>
+          ) : (
+            <div className="text-center p-8">
+              <p className="text-3xl block relative !mb-8 !mt-3">
+                You do not have enough coins to get your fortune read at this time.
+              </p>
+              <button
+                onClick={() => setCurrentStep('landing')}
+                className="text-[10rem] leading-none hover:scale-110 transition-transform cursor-pointer"
+                aria-label="Return to start"
+              >
+                ☜
               </button>
             </div>
           )}

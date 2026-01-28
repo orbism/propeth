@@ -3,7 +3,7 @@
 import { useAppStore } from '@/lib/store';
 
 interface FortuneRevealProps {
-  cardIds: readonly [bigint, bigint, bigint];
+  cardIds: readonly [string, string, string];
   onMintFortune: () => void;
   isMinting: boolean;
 }

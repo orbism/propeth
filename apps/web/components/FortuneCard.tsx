@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 
 interface FortuneCardProps {
-  tokenId: bigint;
+  tokenId: string;
 }
 
 export function FortuneCard({ tokenId }: FortuneCardProps) {

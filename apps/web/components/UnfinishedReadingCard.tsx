@@ -7,7 +7,7 @@ import { PACK1155_ADDRESS, PACK1155_ABI } from '@/lib/contracts';
 import { ipfsToGateway, ipfsToProxy } from '@/lib/ipfs';
 
 interface UnfinishedReadingCardProps {
-  cardIds: [bigint, bigint, bigint];
+  cardIds: [string, string, string];
 }
 
 interface CardMetadata {
@@ -115,7 +115,7 @@ export function UnfinishedReadingCard({ cardIds }: UnfinishedReadingCardProps) {
               {/* Card name overlay */}
               {allReady && (
                 <div className="absolute bottom-0 left-0 right-0 bg-black/80 text-white text-sm p-2 text-center truncate jacquard-12">
-                  {cardMetadata[i]?.name || `#${id.toString()}`}
+                  {cardMetadata[i]?.name || `#${id}`}
                 </div>
               )}
             </div>

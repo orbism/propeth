@@ -32,7 +32,7 @@ export function UniversalCard() {
   const [displayedStep, setDisplayedStep] = useState(currentStep);
 
   const { mintPack, isPending: isMintingPack, error: mintPackError, hash: packHash } = useMintPack();
-  const { mintFortune, isPending: isMintingFortune, error: mintFortuneError, userError: fortuneUserError, hash: fortuneHash } = useMintFortune();
+  const { mintFortune, isPending: isMintingFortune, hasFailed: fortuneHasFailed, error: mintFortuneError, userError: fortuneUserError, hash: fortuneHash } = useMintFortune();
   const { burnAndMint, isPending: isBurning, phase: burnPhase, error: burnError } = useBurnAndMint();
 
   // Debug logging for burn phase
@@ -134,6 +134,7 @@ export function UniversalCard() {
             }
             txHash={packHash || undefined}
             error={mintPackError || mintFortuneError || burnError}
+            onRetry={() => setCurrentStep('mint-choice')}
             onClose={() => {
               if (mintPackError || mintFortuneError || burnError) {
                 setCurrentStep('landing');
@@ -162,13 +163,14 @@ export function UniversalCard() {
       case 'fourth-card-mint':
         return (
           <MintLoader
-            status={(mintFortuneError || fortuneUserError) ? 'error' : (isMintingFortune ? 'confirming' : 'pending')}
+            status={fortuneHasFailed ? 'error' : (isMintingFortune ? 'confirming' : 'pending')}
             message={fortuneUserError || "Creating your final fortune NFT..."}
             txHash={fortuneHash || undefined}
             error={mintFortuneError}
+            onRetry={() => setCurrentStep('fortune-reveal')}
             onClose={() => {
-              if (mintFortuneError || fortuneUserError) {
-                setCurrentStep('triptych-display');
+              if (fortuneHasFailed) {
+                setCurrentStep('fortune-reveal');
               }
             }}
           />

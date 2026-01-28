@@ -8,7 +8,7 @@ import { useAppStore } from '@/lib/store';
 import { FORTUNE721_ADDRESS } from '@/lib/contracts';
 
 interface FortuneDisplayProps {
-  tokenId: bigint;
+  tokenId: string;
 }
 
 export function FortuneDisplay({ tokenId }: FortuneDisplayProps) {

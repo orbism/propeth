@@ -4,14 +4,14 @@ import { FORTUNE721_ADDRESS, FORTUNE721_ABI, PACK1155_ADDRESS, PACK1155_ABI } fr
 import { parseAbiItem } from 'viem';
 
 export interface FortuneReading {
-  tokenId: bigint;
-  cardIds: [bigint, bigint, bigint];
-  variants: [bigint, bigint, bigint];
-  blockNumber: bigint;
+  tokenId: string;
+  cardIds: [string, string, string];
+  variants: [string, string, string];
+  blockNumber: string;
 }
 
 export interface UnfinishedReading {
-  cardIds: [bigint, bigint, bigint];
+  cardIds: [string, string, string];
 }
 
 export function useUserFortunes() {
@@ -55,40 +55,30 @@ export function useUserFortunes() {
 
         console.log('[useUserFortunes] hasMintedPack:', hasMintedPack, 'fortuneCreated:', fortuneCreatedFromLastThree);
 
-        // If has cards but no fortune from them, fetch the card IDs
+        // If has cards but no fortune from them, fetch the card IDs from contract
         if (hasMintedPack && !fortuneCreatedFromLastThree) {
-          console.log('[useUserFortunes] User has unfinished reading, fetching card IDs');
+          console.log('[useUserFortunes] User has unfinished reading, fetching card IDs from contract');
 
-          // Query balances for all 15 cards to find which ones they own
-          const balancePromises = Array.from({ length: 15 }, (_, i) =>
-            publicClient.readContract({
-              address: PACK1155_ADDRESS,
-              abi: PACK1155_ABI,
-              functionName: 'balanceOf',
-              args: [address, BigInt(i)],
-            })
-          );
+          // Use getLastThreeCardsMinted to get the exact cards the contract expects
+          const lastThreeCards = await publicClient.readContract({
+            address: PACK1155_ADDRESS,
+            abi: PACK1155_ABI,
+            functionName: 'getLastThreeCardsMinted',
+            args: [address],
+          }) as [bigint, bigint, bigint];
 
-          const balances = await Promise.all(balancePromises);
-          const ownedCards: bigint[] = [];
+          console.log('[useUserFortunes] Contract lastThreeCardsMinted:', lastThreeCards.map(String));
 
-          balances.forEach((balance, id) => {
-            if (balance && balance > BigInt(0)) {
-              ownedCards.push(BigInt(id));
-            }
-          });
-
-          console.log('[useUserFortunes] User owns cards:', ownedCards.map(String));
-
-          // Use the last 3 owned cards (most recently minted)
-          if (ownedCards.length >= 3) {
-            const cardIds: [bigint, bigint, bigint] = [
-              ownedCards[ownedCards.length - 3],
-              ownedCards[ownedCards.length - 2],
-              ownedCards[ownedCards.length - 1],
+          // Check if cards are valid (not all zeros)
+          if (lastThreeCards[0] !== BigInt(0) || lastThreeCards[1] !== BigInt(0) || lastThreeCards[2] !== BigInt(0)) {
+            const cardIds: [string, string, string] = [
+              lastThreeCards[0].toString(),
+              lastThreeCards[1].toString(),
+              lastThreeCards[2].toString(),
             ];
             setUnfinishedReading({ cardIds });
           } else {
+            console.log('[useUserFortunes] lastThreeCardsMinted returned zeros, no unfinished reading');
             setUnfinishedReading(null);
           }
         } else {
@@ -108,16 +98,20 @@ export function useUserFortunes() {
 
         console.log('[useUserFortunes] Found', logs.length, 'fortune events');
 
-        // Parse logs into FortuneReading objects
-        const readings: FortuneReading[] = logs.map((log) => ({
-          tokenId: log.args.tokenId!,
-          cardIds: log.args.cardIds as [bigint, bigint, bigint],
-          variants: log.args.variants as [bigint, bigint, bigint],
-          blockNumber: log.blockNumber,
-        }));
+        // Parse logs into FortuneReading objects (convert bigints to strings)
+        const readings: FortuneReading[] = logs.map((log) => {
+          const cardIds = log.args.cardIds as [bigint, bigint, bigint];
+          const variants = log.args.variants as [bigint, bigint, bigint];
+          return {
+            tokenId: log.args.tokenId!.toString(),
+            cardIds: [cardIds[0].toString(), cardIds[1].toString(), cardIds[2].toString()] as [string, string, string],
+            variants: [variants[0].toString(), variants[1].toString(), variants[2].toString()] as [string, string, string],
+            blockNumber: log.blockNumber.toString(),
+          };
+        });
 
         // Sort by block number descending (newest first)
-        readings.sort((a, b) => Number(b.blockNumber - a.blockNumber));
+        readings.sort((a, b) => Number(BigInt(b.blockNumber) - BigInt(a.blockNumber)));
 
         setFortunes(readings);
       } catch (err) {

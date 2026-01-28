@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useReadContract, useAccount, usePublicClient } from 'wagmi';
+import { useState, useEffect, useRef } from 'react';
+import { useReadContract } from 'wagmi';
 import { useAppStore } from '@/lib/store';
 import { PACK1155_ADDRESS, PACK1155_ABI } from '@/lib/contracts';
 import { ipfsToGateway, ipfsToProxy } from '@/lib/ipfs';
+import { useUserFortunes } from '@/lib/hooks/useUserFortunes';
 
 interface CardMetadata {
   name: string;
@@ -14,21 +15,44 @@ interface CardMetadata {
 }
 
 interface TriptychDisplayProps {
-  cardIds?: readonly [bigint, bigint, bigint] | null;
+  cardIds?: readonly [string, string, string] | null;
   hasFortune?: boolean;
 }
 
 export function TriptychDisplay({ cardIds: providedCardIds, hasFortune }: TriptychDisplayProps) {
-  const { address } = useAccount();
-  const publicClient = usePublicClient();
-  const { setCurrentStep, fortuneTokenId, setTriptychIds, triptychIds } = useAppStore();
+  const { setCurrentStep, fortuneTokenId, setTriptychIds, triptychIds: storeTriptychIds } = useAppStore();
+
+  // Use useUserFortunes to get unfinished reading cards
+  const { unfinishedReading, isLoading: isLoadingFortunes } = useUserFortunes();
+
+  // Track if we've synced to prevent loops
+  const hasSyncedRef = useRef(false);
+
+  // Priority: props > store > useUserFortunes hook (all are strings now)
+  const hookCardIds = unfinishedReading?.cardIds || null;
+  const cardIds = providedCardIds || storeTriptychIds || hookCardIds;
+
+  // Update store if we got cards from useUserFortunes (only once)
+  useEffect(() => {
+    console.log('[TriptychDisplay] Sync check:', {
+      hasSynced: hasSyncedRef.current,
+      storeTriptychIds,
+      hookCardIds,
+      providedCardIds,
+    });
+    if (!hasSyncedRef.current && !storeTriptychIds && hookCardIds) {
+      console.log('[TriptychDisplay] Syncing hookCardIds to store:', hookCardIds);
+      hasSyncedRef.current = true;
+      setTriptychIds(hookCardIds);
+    }
+  }, [storeTriptychIds, hookCardIds, setTriptychIds, providedCardIds]);
+
   const [cardMetadata, setCardMetadata] = useState<(CardMetadata | null)[]>([null, null, null]);
-  const [isLoadingCards, setIsLoadingCards] = useState(!providedCardIds && !triptychIds);
   const [metadataLoaded, setMetadataLoaded] = useState(false);
   const [videosReady, setVideosReady] = useState<boolean[]>([false, false, false]);
 
-  // Use provided cards or from store
-  const cardIds = providedCardIds || triptychIds;
+  // Determine loading state
+  const isLoadingCards = isLoadingFortunes && !cardIds;
 
   const { data: metadataUri } = useReadContract({
     address: PACK1155_ADDRESS,
@@ -37,65 +61,24 @@ export function TriptychDisplay({ cardIds: providedCardIds, hasFortune }: Tripty
     args: [BigInt(0)],
   });
 
-  // Fetch card IDs from contract if not in store
-  useEffect(() => {
-    if (cardIds) return; // Already have cards
-    if (!address || !publicClient) return;
-
-    const fetchCardIds = async () => {
-      try {
-        console.log('[TriptychDisplay] Fetching card IDs from balances for:', address);
-
-        // Query balances for all 15 cards
-        const balancePromises = Array.from({ length: 15 }, (_, i) =>
-          publicClient.readContract({
-            address: PACK1155_ADDRESS,
-            abi: PACK1155_ABI,
-            functionName: 'balanceOf',
-            args: [address, BigInt(i)],
-          })
-        );
-
-        const balances = await Promise.all(balancePromises);
-        const ownedCards: bigint[] = [];
-
-        balances.forEach((balance, id) => {
-          if (balance && balance > BigInt(0)) {
-            ownedCards.push(BigInt(id));
-          }
-        });
-
-        console.log('[TriptychDisplay] User owns cards:', ownedCards.map(String));
-
-        // Use the last 3 owned cards (most recently minted)
-        if (ownedCards.length >= 3) {
-          const ids = [ownedCards[ownedCards.length - 3], ownedCards[ownedCards.length - 2], ownedCards[ownedCards.length - 1]] as const;
-          console.log('[TriptychDisplay] Got card IDs:', ids.map(String));
-          setTriptychIds(ids);
-          setIsLoadingCards(false);
-        } else {
-          console.warn('[TriptychDisplay] Not enough owned cards found');
-          setIsLoadingCards(false);
-        }
-      } catch (error) {
-        console.error('[TriptychDisplay] Failed to fetch card IDs:', error);
-        setIsLoadingCards(false);
-      }
-    };
-
-    fetchCardIds();
-  }, [address, publicClient, cardIds, setTriptychIds]);
-
   // Fetch metadata for all three cards
+  // Use stringified cardIds as dependency to avoid re-fetching on reference change
+  const cardIdsKey = cardIds ? cardIds.map(id => id.toString()).join(',') : null;
+
   useEffect(() => {
-    if (!metadataUri || !cardIds) return;
+    if (!metadataUri || !cardIdsKey) return;
+
+    // Parse the card IDs from the key (already strings)
+    const ids = cardIdsKey.split(',');
+    console.log('[TriptychDisplay] Fetching metadata for cards:', ids);
 
     const fetchAllMetadata = async () => {
       const metadata: (CardMetadata | null)[] = [null, null, null];
 
-      const fetchPromises = cardIds.map(async (id, i) => {
+      const fetchPromises = ids.map(async (id, i) => {
         try {
           const url = ipfsToGateway(`${metadataUri}${id}.json`);
+          console.log(`[TriptychDisplay] Fetching metadata for card ${i} from:`, url);
           const response = await fetch(url);
           const data = await response.json();
           metadata[i] = {
@@ -110,13 +93,13 @@ export function TriptychDisplay({ cardIds: providedCardIds, hasFortune }: Tripty
       });
 
       await Promise.all(fetchPromises);
-      console.log('[TriptychDisplay] Metadata loaded:', metadata.map(m => m?.animation_url));
+      console.log('[TriptychDisplay] Metadata loaded:', metadata.map(m => m?.name));
       setCardMetadata(metadata);
       setMetadataLoaded(true);
     };
 
     fetchAllMetadata();
-  }, [metadataUri, cardIds]);
+  }, [metadataUri, cardIdsKey]);
 
   // Handle video ready state
   const handleVideoReady = (index: number) => {

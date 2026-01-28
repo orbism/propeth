@@ -106,12 +106,18 @@ export function useMintPack() {
 
               if (decoded.eventName === 'PackMinted') {
                 const ids = (decoded.args as any).ids as readonly [bigint, bigint, bigint];
-                
+
                 console.log('✅ [useMintPack] PackMinted event found!', {
                   ids: ids.map(id => id.toString()),
                 });
 
-                setTriptychIds(ids);
+                // Convert bigints to strings for store
+                const stringIds: readonly [string, string, string] = [
+                  ids[0].toString(),
+                  ids[1].toString(),
+                  ids[2].toString(),
+                ] as const;
+                setTriptychIds(stringIds);
                 setPackTxHash(hash || null);
                 setCurrentStep('triptych-display');
                 return;
@@ -140,13 +146,19 @@ export function useMintPack() {
               if (decoded.eventName === 'TransferBatch') {
                 const args = decoded.args as any;
                 const ids = args.ids as readonly bigint[];
-                
+
                 if (ids && ids.length === 3) {
                   console.log('✅ [useMintPack] TransferBatch event found!', {
                     ids: ids.map(id => id.toString()),
                   });
 
-                  setTriptychIds(ids as readonly [bigint, bigint, bigint]);
+                  // Convert bigints to strings for store
+                  const stringIds: readonly [string, string, string] = [
+                    ids[0].toString(),
+                    ids[1].toString(),
+                    ids[2].toString(),
+                  ] as const;
+                  setTriptychIds(stringIds);
                   setPackTxHash(hash || null);
                   setCurrentStep('triptych-display');
                   return;
@@ -177,9 +189,15 @@ export function useMintPack() {
         }
 
         const ids = await queryBalancesFallback(userAddress);
-        
+
         if (ids) {
-          setTriptychIds(ids);
+          // Convert bigints to strings for store
+          const stringIds: readonly [string, string, string] = [
+            ids[0].toString(),
+            ids[1].toString(),
+            ids[2].toString(),
+          ] as const;
+          setTriptychIds(stringIds);
           setPackTxHash(hash || null);
           setCurrentStep('triptych-display');
         } else if (attempt < 2) {

@@ -62,7 +62,7 @@ export function MintChoiceModal({ isOpen, onClose, onProceed }: MintChoiceModalP
                   You do not have A Promise
                 </h3>
                 <p className="text-3xl block relative !mb-6 !mt-3">
-                  However, you may continue with a fortune by <br/>inserting 0.02 coins.
+                  However, you may continue with a fortune by <br/>inserting 0.03 coins.
                 </p>
                 <div className="text-2xl opacity-70 mb-4">
                   <a

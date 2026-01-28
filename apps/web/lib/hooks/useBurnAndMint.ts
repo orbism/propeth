@@ -152,7 +152,13 @@ export function useBurnAndMint() {
       const cards = await queryLastThreeCards(userAddress);
       if (cards && (cards[0] !== BigInt(0) || cards[1] !== BigInt(0) || cards[2] !== BigInt(0))) {
         console.log('[useBurnAndMint] ✅ Got cards:', cards.map(id => id.toString()));
-        setTriptychIds(cards);
+        // Convert bigints to strings for store
+        const stringIds: readonly [string, string, string] = [
+          cards[0].toString(),
+          cards[1].toString(),
+          cards[2].toString(),
+        ] as const;
+        setTriptychIds(stringIds);
         setCurrentStep('triptych-display');
       } else {
         console.error('[useBurnAndMint] ❌ Cards query returned zeros or failed');

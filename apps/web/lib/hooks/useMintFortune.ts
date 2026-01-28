@@ -2,10 +2,10 @@ import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { useEffect, useState } from 'react';
 import { Address, decodeEventLog } from 'viem';
 import { FORTUNE721_ADDRESS, FORTUNE721_ABI } from '../contracts';
-import { useAppStore } from '../store';
+import { useAppStore, triptychIdsToBigInt } from '../store';
 
 export function useMintFortune() {
-  const { triptychIds, setCurrentStep, setFortuneTokenId } = useAppStore();
+  const { setCurrentStep, setFortuneTokenId } = useAppStore();
   const [userError, setUserError] = useState<string | null>(null);
   
   const {
@@ -39,6 +39,13 @@ export function useMintFortune() {
   const mintFortune = () => {
     setUserError(null); // Clear previous error
 
+    // Read directly from store to avoid stale closure values
+    const currentTriptychIds = useAppStore.getState().triptychIds;
+    const triptychIds = triptychIdsToBigInt(currentTriptychIds);
+
+    console.log('[useMintFortune] Store triptychIds:', currentTriptychIds);
+    console.log('[useMintFortune] Converted to bigints:', triptychIds?.map(id => id.toString()));
+
     if (!triptychIds || triptychIds.length !== 3) {
       console.error('[useMintFortune] ❌ Invalid triptych IDs:', triptychIds);
       setUserError('No cards selected. Please go back and try again.');
@@ -64,24 +71,34 @@ export function useMintFortune() {
     });
   };
 
-  // When fortune is minted successfully, extract token ID and navigate
+  // When fortune is minted, check status and extract token ID
   useEffect(() => {
-    // Only process when we have success AND receipt is loaded
-    if (!isSuccess || isConfirming) return;
-    
-    // If we have receipt with logs, parse it
-    if (receipt && receipt.logs && receipt.logs.length > 0) {
-      console.log('[useMintFortune] Processing receipt with', receipt.logs.length, 'logs');
-      
+    // Only process when we have receipt
+    if (!receipt || isConfirming) return;
+
+    console.log('[useMintFortune] Processing receipt:', {
+      status: receipt.status,
+      logsCount: receipt.logs.length,
+    });
+
+    // Check if transaction reverted on-chain
+    if (receipt.status === 'reverted') {
+      console.error('[useMintFortune] ❌ Transaction reverted on-chain');
+      setUserError('Transaction failed on-chain. The cards may not match what the contract expects. Please try again.');
+      return;
+    }
+
+    // Transaction succeeded - extract token ID
+    if (receipt.status === 'success' && receipt.logs && receipt.logs.length > 0) {
       try {
-        const transferEvent = receipt.logs.find(log => 
+        const transferEvent = receipt.logs.find(log =>
           log.address.toLowerCase() === FORTUNE721_ADDRESS.toLowerCase() &&
           log.topics[0] === '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
         );
-        
+
         if (transferEvent && transferEvent.topics[3]) {
           const tokenId = BigInt(transferEvent.topics[3]);
-          console.log('[useMintFortune] Setting token ID:', tokenId.toString());
+          console.log('[useMintFortune] ✅ Setting token ID:', tokenId.toString());
           setFortuneTokenId(tokenId);
           setCurrentStep('complete');
         } else {
@@ -94,16 +111,8 @@ export function useMintFortune() {
         setFortuneTokenId(BigInt(0));
         setCurrentStep('complete');
       }
-    } else if (isSuccess && !receipt) {
-      // Success but no receipt yet - wait a bit then force navigation
-      console.log('[useMintFortune] Success but waiting for receipt...');
-      setTimeout(() => {
-        console.log('[useMintFortune] Timeout reached, forcing navigation with token ID 0');
-        setFortuneTokenId(BigInt(0));
-        setCurrentStep('complete');
-      }, 2000);
     }
-  }, [isSuccess, isConfirming, receipt, setCurrentStep, setFortuneTokenId]);
+  }, [receipt, isConfirming, setCurrentStep, setFortuneTokenId]);
 
   // Handle write errors and decode them
   useEffect(() => {
@@ -124,10 +133,16 @@ export function useMintFortune() {
     }
   }, [writeError]);
 
+  // Determine if transaction failed (either write error or on-chain revert)
+  const isReverted = receipt?.status === 'reverted';
+  const hasFailed = !!writeError || isReverted || !!userError;
+
   return {
     mintFortune,
     isPending: isWritePending || isConfirming,
-    isSuccess,
+    isSuccess: receipt?.status === 'success',
+    isReverted,
+    hasFailed,
     error: writeError,
     userError, // Human-readable error message
     hash,
