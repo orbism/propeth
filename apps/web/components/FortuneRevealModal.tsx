@@ -29,7 +29,7 @@ export function FortuneRevealModal({ isOpen, onClose, cardIds, onMintFortune, is
 
         <h2 className="text-3xl font-bold mb-6 text-white">The Final Revelation</h2>
         
-        <div className="space-y-6 text-white/90">
+        <div className="space-y-6 text-white/90 jersey-10">
           <p>
             You have gathered your three cards. Each holds a fragment of truth.
           </p>
@@ -39,7 +39,7 @@ export function FortuneRevealModal({ isOpen, onClose, cardIds, onMintFortune, is
             a unique NFT that exists only for you, generated entirely on-chain.
           </p>
 
-          <p className="text-sm text-white/70">
+          <p className="text-sm text-white/70 !mb-4">
             Your fortune will be composed from the cards you hold and stored permanently on the blockchain.
           </p>
         </div>

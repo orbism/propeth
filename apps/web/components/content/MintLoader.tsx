@@ -89,7 +89,7 @@ export function MintLoader({ status, txHash, error, message, onClose, onRetry }:
               {(onRetry || onClose) && (
                 <button
                   onClick={onRetry || onClose}
-                  className="mt-6 px-8 py-3 text-2xl border-2 border-white text-white hover:bg-white hover:text-black transition-all jacquard-12"
+                  className="mt-6 px-8 py-3 text-4xl border-2 border-white text-white hover:bg-white hover:text-black transition-all jacquard-12"
                 >
                   Try Again
                 </button>
@@ -124,7 +124,7 @@ export function MintLoader({ status, txHash, error, message, onClose, onRetry }:
               {onClose && (
                 <button
                   onClick={onClose}
-                  className="mt-6 px-8 py-3 border-2 border-white text-white hover:bg-white hover:text-black transition-all jacquard-12"
+                  className="mt-6 px-8 py-3 text-4xl border-2 border-white text-white hover:bg-white hover:text-black transition-all jacquard-12"
                 >
                   Try Again
                 </button>

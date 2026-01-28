@@ -154,7 +154,7 @@ export function TriptychDisplay({ cardIds: providedCardIds, hasFortune }: Tripty
       {/* Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
         {cardIds.map((id, index) => (
-          <div key={index} className="w-80 h-[424px] border-4 border-white/30 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center relative overflow-hidden">
+          <div key={index} className="w-80 h-[424px] border-1 border-white/30 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center relative overflow-hidden">
             {/* Show loader until all cards are ready */}
             {!allReady && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 z-10">
@@ -185,13 +185,13 @@ export function TriptychDisplay({ cardIds: providedCardIds, hasFortune }: Tripty
       </div>
 
       {/* Titles and Descriptions Below Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 !mb-4 text-center w-full max-w-5xl">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 !mb-0 text-center w-full max-w-5xl">
         {cardMetadata.map((metadata, index) => (
-          <div key={index} className="text-white">
+          <div key={index} className="text-white h-10">
             {allReady ? (
               <>
                 <p className="text-xl font-bold mb-2">{metadata?.name || `Card ${index + 1}`}</p>
-                <p className="text-sm opacity-70">{metadata?.description || ''}</p>
+                <p className="text-sm opacity-70 invisible">{metadata?.description || ''}</p>
               </>
             ) : (
               <>
@@ -203,9 +203,15 @@ export function TriptychDisplay({ cardIds: providedCardIds, hasFortune }: Tripty
         ))}
       </div>
 
-      <p className="text-lg opacity-70 mb-16 text-center">
+      <button
+        onClick={!hasFortune ? handleContinue : undefined}
+        disabled={!allReady || hasFortune}
+        className={`!text-2xl opacity-70 mb-16 text-center block w-full ${
+          !hasFortune && allReady ? 'cursor-pointer hover:opacity-100' : ''
+        }`}
+      >
         {!hasFortune && "(do a reading)"}
-      </p>
+      </button>
 
       <button
         onClick={handleContinue}

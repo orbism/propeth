@@ -221,7 +221,7 @@ export function ReadingCard({ tokenId, cardIds, index }: ReadingCardProps) {
 
       {/* Beige divider - not full width */}
       <div className="flex justify-center" style={{ marginTop: '3em', marginBottom: '3em' }}>
-        <div className="w-2/3 border-b border-[#d4c4a8]/40" />
+        <div className="w-1/3 border-b-3 border-[#d4c4a8]/60" />
       </div>
 
       {/* Fortune Modal */}

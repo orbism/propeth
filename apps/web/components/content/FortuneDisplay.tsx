@@ -27,10 +27,10 @@ export function FortuneDisplay({ tokenId }: FortuneDisplayProps) {
         </div>
 
         {/* Go Back to Fate Cards Button */}
-        <div className="!flex !flex-col !gap-2 !items-center">
+        <div className="!flex !flex-col !gap-2 !items-center ">
           <button
             onClick={handleBackToFate}
-            className="px-12 !pt-4 !-mb-4 !text-xl font-bold border-4 border-white text-white hover:bg-white hover:text-black transition-all duration-300 jacquard-12"
+            className="px-12 !pt-4 !-mb-2 !text-3xl font-bold border-4 border-white text-white hover:bg-white hover:text-black transition-all duration-300 jacquard-12"
           >
             go back to fate cards
           </button>
@@ -42,9 +42,9 @@ export function FortuneDisplay({ tokenId }: FortuneDisplayProps) {
           {/* View Past Readings Link */}
           <Link
             href="/my-readings"
-            className="!mt-4 text-white/60 hover:text-white transition-colors jacquard-12 text-lg"
+            className="!mt-4 text-white/60 hover:text-white transition-colors jacquard-12 text-2xl jersey-10"
           >
-            view all my readings &rarr;
+            alternatively, view all of your past visits with The Great Propeth &rarr;
           </Link>
         </div>
       </div>

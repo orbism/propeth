@@ -40,9 +40,9 @@ export function LandingContent() {
       <div className="flex items-center justify-center min-h-screen p-8">
         <div className="w-[1200px] h-[666px] relative flex items-center justify-center">
           {/* Top Right - Connect Wallet Button */}
-          <div className="absolute top-16 right-16 z-30 text-right">
+          <div className="absolute top-16 right-16 z-30 inline-flex items-center gap-2">
             {isConnected && (
-              <p className="text-white/40 font-mono mb-1 !text-xs">connected:</p>
+              <p className="text-white/40 font-mono !text-xs">connected:</p>
             )}
             <WalletButton
               externalOpen={forceWalletOpen}

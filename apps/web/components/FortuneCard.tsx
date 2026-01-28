@@ -54,7 +54,7 @@ export function FortuneCard({ tokenId }: FortuneCardProps) {
             <object
               data={svgDataUrl}
               type="image/svg+xml"
-              style={{ display: 'block', width: '900px', height: 'auto' }}
+              style={{ display: 'block', width: '740px', height: 'auto' }}
             />
           </div>
         </div>

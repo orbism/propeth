@@ -19,10 +19,10 @@ export function FortuneReveal({ cardIds, onMintFortune, isMinting }: FortuneReve
   return (
     <div className="flex items-center justify-center min-h-[500px] p-8">
       <div className="w-full max-w-3xl">
-        <h2 className="text-4xl font-bold mb-16 text-white text-center jacquard-12">The Final Revelation</h2>
+        <h2 className="text-6xl font-bold mb-16 text-white text-center jacquard-12">The Final Revelation</h2>
         
-        <div className="space-y-10 text-white/90 mb-12 text-center">
-          <p className="text-2xl leading-relaxed">
+        <div className="space-y-10 text-white/90 mb-12 text-center !my-12">
+          <p className="text-2xl leading-relaxed jersey-10">
             You have gathered your three cards. Each holds a fragment of truth.
           </p>
 
@@ -31,7 +31,7 @@ export function FortuneReveal({ cardIds, onMintFortune, isMinting }: FortuneReve
             a unique NFT that exists only for you, generated entirely on-chain.
           </p>
 
-          <p className="text-lg text-white/70 leading-relaxed">
+          <p className="text-lg text-white/70 leading-relaxed mb-4">
             Your fortune will be composed from the cards you hold and stored permanently on the blockchain.
           </p>
         </div>

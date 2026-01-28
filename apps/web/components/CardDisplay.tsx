@@ -39,7 +39,7 @@ export function CardDisplay({ cardId, metadataUri }: CardDisplayProps) {
 
   if (loading) {
     return (
-      <div className="w-80 h-[424px] border-4 border-white/30 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center">
+      <div className="w-80 h-[424px] border-1 border-white/30 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center">
         <div className="text-4xl mystic-spinner mb-4">&#9788;</div>
         <div className="text-white/70 jacquard-12 text-lg">drawing your card...</div>
       </div>

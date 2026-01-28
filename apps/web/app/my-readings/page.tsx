@@ -32,17 +32,18 @@ export default function MyReadingsPage() {
       {/* Content */}
       <div className="relative z-20 min-h-screen flex flex-col px-[6em] pt-[8em] pb-[5em]">
         {/* Header */}
-        <div className="flex justify-between items-start mb-8 px-4 pt-2">
+        <div className="flex justify-between items-start !m-4 px-4 pt-2">
           <Link
             href="/"
-            className="text-white/70 hover:text-white transition-colors jacquard-12 text-xl"
+            className="text-white/70 hover:text-white transition-colors jacquard-12 text-2xl"
           >
             &larr; back to fortune teller
           </Link>
           {isConnected && (
             <div className="text-right">
-              <p className="text-white/40 font-mono mb-1 !text-xs">connected:</p>
-              <WalletButton />
+              <p className="text-white/40 font-mono mb-1 !text-xs inline-flex items-center gap-2">
+                connected: <WalletButton />
+              </p>            
             </div>
           )}
         </div>

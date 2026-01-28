@@ -112,12 +112,12 @@ h2, h3 {
 
 /* Jacquard 12 font for titles and buttons */
 .jacquard-12 {
-  font-family: "Jacquard 12", system-ui;
+  font-family: "Jacquard 12", system-ui !important;
 }
 
 /* Jersey 10 font for body text (explicit use) */
 .jersey-10 {
-  font-family: "Jersey 10", system-ui;
+  font-family: "Jersey 10", system-ui !important;
 }
 
 .larger {
@@ -169,4 +169,14 @@ button:hover {
 @keyframes pulse-border {
   0%, 100% { border-color: rgba(212, 196, 168, 0.3); }
   50% { border-color: rgba(212, 196, 168, 0.8); }
+}
+
+/* Gentle floating animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+.float-slow {
+  animation: float 3s ease-in-out infinite;
 }
