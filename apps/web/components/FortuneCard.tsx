@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react';
 
 interface FortuneCardProps {
   tokenId: string;
+  onSvgReady?: (svgUrl: string, svgString: string) => void;
 }
 
-export function FortuneCard({ tokenId }: FortuneCardProps) {
+export function FortuneCard({ tokenId, onSvgReady }: FortuneCardProps) {
   const [svgDataUrl, setSvgDataUrl] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
@@ -27,6 +28,7 @@ export function FortuneCard({ tokenId }: FortuneCardProps) {
         const blob = new Blob([data.svg], { type: 'image/svg+xml' });
         const url = URL.createObjectURL(blob);
         setSvgDataUrl(url);
+        onSvgReady?.(url, data.svg);
       } catch (error) {
         console.error('Failed to fetch fortune SVG:', error);
       } finally {
@@ -54,7 +56,7 @@ export function FortuneCard({ tokenId }: FortuneCardProps) {
             <object
               data={svgDataUrl}
               type="image/svg+xml"
-              style={{ display: 'block', width: '740px', height: 'auto' }}
+              style={{ display: 'block', width: '620px', height: 'auto' }}
             />
           </div>
         </div>

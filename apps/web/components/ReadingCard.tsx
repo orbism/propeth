@@ -75,6 +75,7 @@ function OverlayModal({ isOpen, onClose, children }: OverlayModalProps) {
 
 export function ReadingCard({ tokenId, cardIds, index }: ReadingCardProps) {
   const [fortuneSvg, setFortuneSvg] = useState<string>('');
+  const [fortuneSvgString, setFortuneSvgString] = useState<string>('');
   const [cardMetadata, setCardMetadata] = useState<(CardMetadata | null)[]>([null, null, null]);
   const [loading, setLoading] = useState(true);
   const [fortuneModalOpen, setFortuneModalOpen] = useState(false);
@@ -96,6 +97,7 @@ export function ReadingCard({ tokenId, cardIds, index }: ReadingCardProps) {
         if (response.ok) {
           const data = await response.json();
           if (data.svg) {
+            setFortuneSvgString(data.svg);
             const blob = new Blob([data.svg], { type: 'image/svg+xml' });
             setFortuneSvg(URL.createObjectURL(blob));
           }
@@ -136,6 +138,52 @@ export function ReadingCard({ tokenId, cardIds, index }: ReadingCardProps) {
   const closeFortuneModal = useCallback(() => setFortuneModalOpen(false), []);
   const closeCardModal = useCallback(() => setCardModalOpen(null), []);
 
+  const handleDownloadPng = async () => {
+    if (!fortuneSvgString) return;
+
+    try {
+      const imageMatch = fortuneSvgString.match(/<image\s+href="([^"]+)"/);
+      let processedSvg = fortuneSvgString;
+
+      if (imageMatch) {
+        const imageUrl = imageMatch[1];
+        const cidMatch = imageUrl.match(/ipfs\/(.+)$/);
+        const fetchUrl = cidMatch ? `/api/ipfs/${cidMatch[1]}` : imageUrl;
+
+        const response = await fetch(fetchUrl);
+        const blob = await response.blob();
+        const base64 = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(blob);
+        });
+        processedSvg = fortuneSvgString.replace(imageUrl, base64);
+      }
+
+      const svgBlob = new Blob([processedSvg], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(svgBlob);
+
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1920;
+        canvas.height = 1080;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, 1920, 1080);
+
+        const link = document.createElement('a');
+        link.download = `fortune-${tokenId}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+
+        URL.revokeObjectURL(url);
+      };
+      img.src = url;
+    } catch (error) {
+      console.error('Failed to download PNG:', error);
+    }
+  };
+
   return (
     <>
       <div className="text-center">
@@ -165,9 +213,20 @@ export function ReadingCard({ tokenId, cardIds, index }: ReadingCardProps) {
           )}
         </div>
 
-        {/* Expand hint */}
+        {/* Expand hint and download */}
         <p className="text-sm text-white/40 mb-10">
-          click to expand
+          click card to expand
+          {fortuneSvgString && (
+            <>
+              {' | '}
+              <button
+                onClick={handleDownloadPng}
+                className="text-white/40 hover:text-white/70 transition-colors"
+              >
+                download as PNG
+              </button>
+            </>
+          )}
         </p>
 
         {/* Triptych Cards */}

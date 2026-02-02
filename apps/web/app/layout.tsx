@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Providers } from '@/lib/providers';
 import { MusicPlayer } from '@/components/MusicPlayer';
+import { Footer } from '@/components/Footer';
 
 export const metadata: Metadata = {
   title: 'The Great Propeth',
@@ -38,6 +39,7 @@ export default function RootLayout({
       <body>
         <Providers>{children}</Providers>
         <MusicPlayer />
+        <Footer />
       </body>
     </html>
   );
