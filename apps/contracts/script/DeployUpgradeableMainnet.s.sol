@@ -8,7 +8,6 @@ import "../src/Fortune721Upgradeable.sol";
 import "../src/BurnRedeemGateway.sol";
 import "../src/mocks/MockRandomness.sol";
 import "../src/adapters/DirectBurn1155.sol";
-import "../src/adapters/DirectBurn721.sol";
 
 /**
  * @title DeployUpgradeableMainnet
@@ -17,14 +16,9 @@ import "../src/adapters/DirectBurn721.sol";
  *
  * REQUIRED Environment variables:
  *   PRIVATE_KEY        - Deployer private key
- *   PAYOUT_ADDRESS     - Address to receive payments (REQUIRED for mainnet safety)
  *
- * OPTIONAL Environment variables (with defaults):
- *   ROYALTY_RECEIVER   - Address to receive royalties (default: PAYOUT_ADDRESS)
- *   ROYALTY_BPS        - Royalty basis points (default: 500 = 5%)
- *   PRICE_PER_PACK_WEI - Price per pack in wei (default: 30000000000000000 = 0.03 ETH)
- *   PROMISE_NFT        - "A Promise" NFT contract address (default: address(0) = skip)
- *   PROMISE_IS_721     - Set to "true" if Promise NFT is ERC721 (default: true)
+ * All other configuration is prompted interactively at runtime.
+ * Press enter at any prompt to accept the default value.
  */
 contract DeployUpgradeableMainnet is Script {
     // ============ Constants ============
@@ -44,7 +38,6 @@ contract DeployUpgradeableMainnet is Script {
     uint96 public royaltyBps;
     uint256 public pricePerPack;
     address public promiseNftAddress;
-    bool public promiseIsErc721;
 
     // ============ Deployed Addresses ============
     Pack1155Upgradeable public packImpl;
@@ -62,14 +55,25 @@ contract DeployUpgradeableMainnet is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address deployer = vm.addr(deployerPrivateKey);
 
-        // Load runtime configuration from environment
-        // PAYOUT_ADDRESS is REQUIRED for mainnet (no default)
-        payoutAddress = vm.envAddress("PAYOUT_ADDRESS");
-        royaltyReceiver = vm.envOr("ROYALTY_RECEIVER", payoutAddress);
-        royaltyBps = uint96(vm.envOr("ROYALTY_BPS", uint256(500)));
-        pricePerPack = vm.envOr("PRICE_PER_PACK_WEI", uint256(30000000000000000));
-        promiseNftAddress = vm.envOr("PROMISE_NFT", address(0));
-        promiseIsErc721 = vm.envOr("PROMISE_IS_721", true);
+        // Interactive configuration prompts (press enter for defaults)
+        string memory input;
+
+        input = vm.prompt("Payout address (default: deployer)");
+        payoutAddress = bytes(input).length == 0 ? deployer : vm.parseAddress(input);
+
+        input = vm.prompt("Royalty receiver (default: payout address)");
+        royaltyReceiver = bytes(input).length == 0 ? payoutAddress : vm.parseAddress(input);
+
+        input = vm.prompt("Royalty BPS (default: 500)");
+        royaltyBps = bytes(input).length == 0 ? 500 : uint96(vm.parseUint(input));
+
+        input = vm.prompt("Price per pack in wei (default: 30000000000000000)");
+        pricePerPack = bytes(input).length == 0 ? 30000000000000000 : vm.parseUint(input);
+
+        input = vm.prompt("Promise NFT address (default: 0x2EaA8C468Aa638c88Bd704E3A2b03d9926F0b397)");
+        promiseNftAddress = bytes(input).length == 0
+            ? 0x2EaA8C468Aa638c88Bd704E3A2b03d9926F0b397
+            : vm.parseAddress(input);
 
         console.log("=================================================");
         console.log("MAINNET UUPS DEPLOYMENT");
@@ -83,15 +87,12 @@ contract DeployUpgradeableMainnet is Script {
         console.log("Royalty Receiver:", royaltyReceiver);
         console.log("Royalty BPS:", royaltyBps);
         console.log("Price per Pack:", pricePerPack, "wei");
-        if (promiseNftAddress != address(0)) {
-            console.log("Promise NFT:", promiseNftAddress);
-            console.log("Promise is ERC721:", promiseIsErc721);
-        }
+        console.log("Promise NFT:", promiseNftAddress);
         console.log("");
 
         // Safety checks
-        require(payoutAddress != address(0), "PAYOUT_ADDRESS env var is required for mainnet");
-        require(deployer.balance > 0.1 ether, "Insufficient balance for deployment");
+        require(payoutAddress != address(0), "Payout address cannot be zero");
+        require(deployer.balance > 0.042 ether, "Insufficient balance for deployment");
 
         vm.startBroadcast(deployerPrivateKey);
 
@@ -158,20 +159,10 @@ contract DeployUpgradeableMainnet is Script {
         loadFortuneTexts(fortune);
         console.log("  All 90 fortune texts loaded");
 
-        // Optional: Set up burn adapter for "A Promise" NFT
-        if (promiseNftAddress != address(0)) {
-            if (promiseIsErc721) {
-                DirectBurn721 adapter = new DirectBurn721(promiseNftAddress);
-                gateway.setAdapter(promiseNftAddress, address(adapter));
-                console.log("  DirectBurn721 adapter configured for:", promiseNftAddress);
-            } else {
-                DirectBurn1155 adapter = new DirectBurn1155(promiseNftAddress);
-                gateway.setAdapter(promiseNftAddress, address(adapter));
-                console.log("  DirectBurn1155 adapter configured for:", promiseNftAddress);
-            }
-        } else {
-            console.log("  Skipping burn adapter (PROMISE_NFT env var not set)");
-        }
+        // Deploy DirectBurn1155 adapter for "A Promise" NFT
+        DirectBurn1155 adapter = new DirectBurn1155(promiseNftAddress);
+        gateway.setAdapter(promiseNftAddress, address(adapter));
+        console.log("  DirectBurn1155 adapter configured for:", promiseNftAddress);
 
         vm.stopBroadcast();
 
@@ -204,12 +195,10 @@ contract DeployUpgradeableMainnet is Script {
         console.log("# Supporting Contracts");
         console.log("RANDOMNESS_SOURCE=%s", address(randomness));
         console.log("");
-        if (promiseNftAddress != address(0)) {
-            console.log("# Promise NFT");
-            console.log("NEXT_PUBLIC_PROMISE_CONTRACT=%s", promiseNftAddress);
-            console.log("NEXT_PUBLIC_PROMISE_TOKEN_ID=1");
-            console.log("NEXT_PUBLIC_PROMISE_CHAIN_ID=1");
-        }
+        console.log("# Promise NFT");
+        console.log("NEXT_PUBLIC_PROMISE_CONTRACT=%s", promiseNftAddress);
+        console.log("NEXT_PUBLIC_PROMISE_TOKEN_ID=1");
+        console.log("NEXT_PUBLIC_PROMISE_CHAIN_ID=1");
         console.log("");
         console.log("# Payout & Pricing");
         console.log("NEXT_PUBLIC_PAYOUT_ADDRESS=%s", payoutAddress);
