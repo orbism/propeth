@@ -41,9 +41,9 @@ export default function MyReadingsPage() {
           </Link>
           {isConnected && (
             <div className="text-right">
-              <p className="text-white/40 font-mono mb-1 !text-xs inline-flex items-center gap-2">
+              <div className="text-white/40 font-mono mb-1 !text-xs inline-flex items-center gap-2">
                 connected: <WalletButton />
-              </p>            
+              </div>            
             </div>
           )}
         </div>
