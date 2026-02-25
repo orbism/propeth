@@ -40,6 +40,7 @@ contract Fortune721Upgradeable is
     address public payoutAddress;
     address public admin;
     address public pack1155;
+    string public animationBaseURI;
 
     /// @notice Mapping: cardId => position => variant => text string
     mapping(uint256 => mapping(uint256 => mapping(uint256 => string))) public fragmentTexts;
@@ -219,79 +220,79 @@ contract Fortune721Upgradeable is
      */
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
         _requireOwned(tokenId);
+        string memory json = _buildJson(tokenId);
+        return string(abi.encodePacked("data:application/json;base64,", Base64.encode(bytes(json))));
+    }
 
-        FortuneData memory data = fortuneData[tokenId];
-
-        string memory text1 = fragmentTexts[data.card1][1][data.variant1];
-        string memory text2 = fragmentTexts[data.card2][2][data.variant2];
-        string memory text3 = fragmentTexts[data.card3][3][data.variant3];
+    function _buildSvg(FortuneData memory data) internal view returns (string memory) {
+        string memory fontFamily = bytes(fontURI).length > 0 ? "Custom" : "monospace";
 
         string memory fontDef = bytes(fontURI).length > 0
             ? string(abi.encodePacked('<defs><style>@font-face{font-family:"Custom";src:url(', fontURI, ');}</style></defs>'))
             : "";
 
-        string memory svg = string(
+        return string(
             abi.encodePacked(
                 '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid meet">',
                 fontDef,
                 '<image href="https://propeth.4everland.link/ipfs/',
                 baseBgCID,
                 '" width="1920" height="1080"/>',
-                '<text x="960" y="430" text-anchor="middle" fill="#000" font-size="48" font-family="',
-                bytes(fontURI).length > 0 ? "Custom" : "monospace",
-                '">',
-                text1,
-                '</text>',
-                '<text x="960" y="580" text-anchor="middle" fill="#000" font-size="48" font-family="',
-                bytes(fontURI).length > 0 ? "Custom" : "monospace",
-                '">',
-                text2,
-                '</text>',
-                '<text x="960" y="730" text-anchor="middle" fill="#000" font-size="48" font-family="',
-                bytes(fontURI).length > 0 ? "Custom" : "monospace",
-                '">',
-                text3,
-                '</text>',
+                _buildTextElements(data, fontFamily),
                 "</svg>"
             )
         );
+    }
 
-        string memory json = string(
+    function _buildTextElements(FortuneData memory data, string memory fontFamily) internal view returns (string memory) {
+        return string(
+            abi.encodePacked(
+                '<text x="960" y="430" text-anchor="middle" fill="#000" font-size="48" font-family="',
+                fontFamily, '">', fragmentTexts[data.card1][1][data.variant1], '</text>',
+                '<text x="960" y="580" text-anchor="middle" fill="#000" font-size="48" font-family="',
+                fontFamily, '">', fragmentTexts[data.card2][2][data.variant2], '</text>',
+                '<text x="960" y="730" text-anchor="middle" fill="#000" font-size="48" font-family="',
+                fontFamily, '">', fragmentTexts[data.card3][3][data.variant3], '</text>'
+            )
+        );
+    }
+
+    function _buildJson(uint256 tokenId) internal view returns (string memory) {
+        FortuneData memory data = fortuneData[tokenId];
+        string memory svg = _buildSvg(data);
+
+        string memory animationField = bytes(animationBaseURI).length > 0
+            ? string(abi.encodePacked(',"animation_url":"', animationBaseURI, '?id=', tokenId.toString(), '"'))
+            : "";
+
+        return string(
             abi.encodePacked(
                 '{"name":"Fortune #',
                 tokenId.toString(),
                 '","description":"A mystical fortune composed from the triptych of cards ',
-                data.card1.toString(),
-                ", ",
-                data.card2.toString(),
-                ", ",
-                data.card3.toString(),
+                data.card1.toString(), ", ", data.card2.toString(), ", ", data.card3.toString(),
                 '","image":"data:image/svg+xml;base64,',
                 Base64.encode(bytes(svg)),
-                '","attributes":[',
-                '{"trait_type":"Card 1","value":"',
-                data.card1.toString(),
-                '"},',
-                '{"trait_type":"Card 2","value":"',
-                data.card2.toString(),
-                '"},',
-                '{"trait_type":"Card 3","value":"',
-                data.card3.toString(),
-                '"},',
-                '{"trait_type":"Variant 1","value":"',
-                data.variant1 == 0 ? "A" : "B",
-                '"},',
-                '{"trait_type":"Variant 2","value":"',
-                data.variant2 == 0 ? "A" : "B",
-                '"},',
-                '{"trait_type":"Variant 3","value":"',
-                data.variant3 == 0 ? "A" : "B",
-                '"}',
+                '"',
+                animationField,
+                ',"attributes":[',
+                _buildAttributes(data),
                 "]}"
             )
         );
+    }
 
-        return string(abi.encodePacked("data:application/json;base64,", Base64.encode(bytes(json))));
+    function _buildAttributes(FortuneData memory data) internal pure returns (string memory) {
+        return string(
+            abi.encodePacked(
+                '{"trait_type":"Card 1","value":"', data.card1.toString(), '"},',
+                '{"trait_type":"Card 2","value":"', data.card2.toString(), '"},',
+                '{"trait_type":"Card 3","value":"', data.card3.toString(), '"},',
+                '{"trait_type":"Variant 1","value":"', data.variant1 == 0 ? "A" : "B", '"},',
+                '{"trait_type":"Variant 2","value":"', data.variant2 == 0 ? "A" : "B", '"},',
+                '{"trait_type":"Variant 3","value":"', data.variant3 == 0 ? "A" : "B", '"}'
+            )
+        );
     }
 
     // ============ Admin Functions ============
@@ -302,6 +303,10 @@ contract Fortune721Upgradeable is
 
     function setFontURI(string calldata _uri) external onlyOwnerOrAdmin {
         fontURI = _uri;
+    }
+
+    function setAnimationBaseURI(string calldata _uri) external onlyOwnerOrAdmin {
+        animationBaseURI = _uri;
     }
 
     function setFragmentText(uint256 cardId, uint256 position, uint256 variant, string calldata text)

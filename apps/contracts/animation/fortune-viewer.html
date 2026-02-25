@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="https://www.thegreatpropeth.com/favicon.ico">
+<title>The Great Propeth</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+  #container { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+  #container svg { width: 100%; height: 100%; display: block; }
+  #error { color: #fff; font-family: monospace; padding: 2em; display: none; }
+  #loader { color: #fff; font-family: monospace; font-size: 1.5em; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+</style>
+</head>
+<body>
+<div id="container"></div>
+<div id="loader">loading</div>
+<div id="error"></div>
+<script>
+// Fortune Viewer — https://thegreatpropeth.com
+(async function() {
+  // Animate loader dots
+  var loaderEl = document.getElementById('loader');
+  var dots = 0;
+  var loaderInterval = setInterval(function() {
+    dots = (dots + 1) % 4;
+    loaderEl.textContent = 'loading' + '.'.repeat(dots);
+  }, 400);
+
+  const CONTRACT = '0xcB7123C5cBfEE66d09B4e44fc9623fb1cf951364';
+  const RPC_URLS = [
+    'https://ethereum-rpc.publicnode.com',
+    'https://eth.drpc.org'
+  ];
+  const IPFS_GATEWAY = 'https://propeth.4everland.link/ipfs/';
+
+  function hideLoader() {
+    clearInterval(loaderInterval);
+    loaderEl.style.display = 'none';
+  }
+
+  function showError(msg) {
+    hideLoader();
+    var el = document.getElementById('error');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  // Get tokenId from query string
+  var params = new URLSearchParams(window.location.search);
+  var tokenId = params.get('id');
+  if (tokenId === null) { showError('Missing ?id= parameter'); return; }
+  tokenId = parseInt(tokenId, 10);
+  if (isNaN(tokenId) || tokenId < 0) { showError('Invalid token ID'); return; }
+
+  // Encode tokenURI(uint256) call — selector: 0xc87b56dd
+  var tokenIdHex = tokenId.toString(16).padStart(64, '0');
+  var calldata = '0xc87b56dd' + tokenIdHex;
+
+  try {
+    // RPC call with fallback
+    var rpcJson = null;
+    var rpcBody = JSON.stringify({
+      jsonrpc: '2.0', id: 1,
+      method: 'eth_call',
+      params: [{ to: CONTRACT, data: calldata }, 'latest']
+    });
+    for (var r = 0; r < RPC_URLS.length; r++) {
+      try {
+        var rpcResp = await fetch(RPC_URLS[r], {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: rpcBody
+        });
+        rpcJson = await rpcResp.json();
+        if (rpcJson.result && !rpcJson.error) break;
+        rpcJson = null;
+      } catch(e) {
+      }
+    }
+    if (!rpcJson || rpcJson.error) {
+      showError('RPC error: ' + (rpcJson ? rpcJson.error.message : 'all RPCs failed'));
+      return;
+    }
+
+    // Decode ABI-encoded string
+    var hex = rpcJson.result.slice(2);
+    var offset = parseInt(hex.slice(0, 64), 16) * 2;
+    var len = parseInt(hex.slice(offset, offset + 64), 16) * 2;
+    var strHex = hex.slice(offset + 64, offset + 64 + len);
+    var tokenURIStr = '';
+    for (var i = 0; i < strHex.length; i += 2) {
+      tokenURIStr += String.fromCharCode(parseInt(strHex.slice(i, i + 2), 16));
+    }
+
+    // Parse metadata
+    var jsonB64 = tokenURIStr.replace('data:application/json;base64,', '');
+    var metadata = JSON.parse(atob(jsonB64));
+
+    // Decode SVG
+    var svgB64 = metadata.image.replace('data:image/svg+xml;base64,', '');
+    var svgStr = atob(svgB64);
+
+    // Find background image IPFS reference
+    var imageMatch = svgStr.match(/<image\s+href="([^"]+)"/);
+    if (!imageMatch) {
+      hideLoader();
+      document.getElementById('container').innerHTML = svgStr;
+      return;
+    }
+
+    var bgUrl = imageMatch[1];
+    var ipfsMatch = bgUrl.match(/\/ipfs\/([^"\/\s?#]+)/);
+    if (!ipfsMatch) {
+      hideLoader();
+      document.getElementById('container').innerHTML = svgStr;
+      return;
+    }
+
+    var cid = ipfsMatch[1];
+    var gatewayUrl = IPFS_GATEWAY + cid;
+
+    // Replace the IPFS href with our gateway URL.
+    // The browser loads <image href> directly (no CORS restriction),
+    // unlike fetch() which is blocked by CORS on localhost.
+    svgStr = svgStr.replace(imageMatch[0], '<image href="' + gatewayUrl + '"');
+
+    hideLoader();
+    document.getElementById('container').innerHTML = svgStr;
+
+  } catch(e) {
+    showError('Error: ' + e.message);
+  }
+})();
+</script>
+</body>
+</html>
