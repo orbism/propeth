@@ -2,8 +2,6 @@
 
 import Image from 'next/image';
 import { CardDisplay } from './CardDisplay';
-import { useReadContract } from 'wagmi';
-import { PACK1155_ADDRESS, PACK1155_ABI } from '../lib/contracts';
 
 interface TriptychProps {
   cardIds: readonly [bigint, bigint, bigint];
@@ -12,14 +10,6 @@ interface TriptychProps {
 }
 
 export function Triptych({ cardIds, onContinue, hasFortune }: TriptychProps) {
-  
-  // Get the metadata URI from the contract
-  const { data: metadataUri } = useReadContract({
-    address: PACK1155_ADDRESS,
-    abi: PACK1155_ABI,
-    functionName: 'uri',
-    args: [BigInt(0)], // ERC1155 uses same base URI for all tokens
-  });
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
       {/* Background Video */}
@@ -79,23 +69,10 @@ export function Triptych({ cardIds, onContinue, hasFortune }: TriptychProps) {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
           {cardIds.map((id, index) => (
-            metadataUri ? (
-              <CardDisplay 
-                key={index} 
-                cardId={id} 
-                metadataUri={metadataUri}
-              />
-            ) : (
-              <div
-                key={index}
-                className="w-72 h-96 border-4 border-white/80 bg-black/60 backdrop-blur-sm flex items-center justify-center"
-              >
-                <div className="text-center">
-                  <div className="text-6xl mb-4 opacity-80">🂠</div>
-                  <div className="text-xl">Card #{id.toString()}</div>
-                </div>
-              </div>
-            )
+            <CardDisplay
+              key={index}
+              cardId={id}
+            />
           ))}
         </div>
 

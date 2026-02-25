@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useReadContract } from 'wagmi';
+import { PACK1155_ADDRESS, PACK1155_ABI } from '@/lib/contracts';
 import { ipfsToGateway, ipfsToProxy } from '@/lib/ipfs';
 
 interface CardMetadata {
@@ -12,18 +14,27 @@ interface CardMetadata {
 
 interface CardDisplayProps {
   cardId: bigint;
-  metadataUri: string;
 }
 
-export function CardDisplay({ cardId, metadataUri }: CardDisplayProps) {
+export function CardDisplay({ cardId }: CardDisplayProps) {
   const [metadata, setMetadata] = useState<CardMetadata | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Fetch the full metadata URI for this specific card
+  const { data: metadataUri } = useReadContract({
+    address: PACK1155_ADDRESS,
+    abi: PACK1155_ABI,
+    functionName: 'uri',
+    args: [cardId],
+  });
+
   useEffect(() => {
+    if (!metadataUri) return;
+
     async function fetchMetadata() {
       try {
-        // Construct the URL for the specific card
-        const url = ipfsToGateway(`${metadataUri}${cardId}.json`);
+        // uri(cardId) now returns the full path (e.g. ipfs://bafybei.../5.json)
+        const url = ipfsToGateway(metadataUri as string);
         const response = await fetch(url);
         const data = await response.json();
         setMetadata(data);

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useReadContract } from 'wagmi';
+import { useReadContracts } from 'wagmi';
 import { useAppStore } from '@/lib/store';
 import { PACK1155_ADDRESS, PACK1155_ABI } from '@/lib/contracts';
 import { ipfsToGateway, ipfsToProxy } from '@/lib/ipfs';
@@ -54,21 +54,28 @@ export function TriptychDisplay({ cardIds: providedCardIds, hasFortune }: Tripty
   // Determine loading state
   const isLoadingCards = isLoadingFortunes && !cardIds;
 
-  const { data: metadataUri } = useReadContract({
-    address: PACK1155_ADDRESS,
-    abi: PACK1155_ABI,
-    functionName: 'uri',
-    args: [BigInt(0)],
-  });
-
-  // Fetch metadata for all three cards
   // Use stringified cardIds as dependency to avoid re-fetching on reference change
   const cardIdsKey = cardIds ? cardIds.map(id => id.toString()).join(',') : null;
 
-  useEffect(() => {
-    if (!metadataUri || !cardIdsKey) return;
+  // Batch-fetch uri(cardId) for all 3 cards
+  const { data: cardUris } = useReadContracts({
+    contracts: cardIds
+      ? cardIds.map((id) => ({
+          address: PACK1155_ADDRESS,
+          abi: PACK1155_ABI,
+          functionName: 'uri' as const,
+          args: [BigInt(id)],
+        }))
+      : [],
+    query: {
+      enabled: !!cardIds,
+    },
+  });
 
-    // Parse the card IDs from the key (already strings)
+  // Fetch metadata for all three cards using per-card URIs
+  useEffect(() => {
+    if (!cardUris || !cardIdsKey || cardUris.some((r) => !r.result)) return;
+
     const ids = cardIdsKey.split(',');
     console.log('[TriptychDisplay] Fetching metadata for cards:', ids);
 
@@ -77,7 +84,8 @@ export function TriptychDisplay({ cardIds: providedCardIds, hasFortune }: Tripty
 
       const fetchPromises = ids.map(async (id, i) => {
         try {
-          const url = ipfsToGateway(`${metadataUri}${id}.json`);
+          // uri(cardId) returns the full path (e.g. ipfs://bafybei.../5.json)
+          const url = ipfsToGateway(cardUris[i].result as string);
           console.log(`[TriptychDisplay] Fetching metadata for card ${i} from:`, url);
           const response = await fetch(url);
           const data = await response.json();
@@ -99,7 +107,7 @@ export function TriptychDisplay({ cardIds: providedCardIds, hasFortune }: Tripty
     };
 
     fetchAllMetadata();
-  }, [metadataUri, cardIdsKey]);
+  }, [cardUris, cardIdsKey]);
 
   // Handle video ready state
   const handleVideoReady = (index: number) => {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useReadContract } from 'wagmi';
+import { useReadContracts } from 'wagmi';
 import { PACK1155_ADDRESS, PACK1155_ABI } from '@/lib/contracts';
 import { ipfsToGateway, ipfsToProxy } from '@/lib/ipfs';
 import Image from 'next/image';
@@ -81,12 +81,14 @@ export function ReadingCard({ tokenId, cardIds, index }: ReadingCardProps) {
   const [fortuneModalOpen, setFortuneModalOpen] = useState(false);
   const [cardModalOpen, setCardModalOpen] = useState<number | null>(null);
 
-  // Get metadata URI from Pack1155
-  const { data: metadataUri } = useReadContract({
-    address: PACK1155_ADDRESS,
-    abi: PACK1155_ABI,
-    functionName: 'uri',
-    args: [BigInt(0)],
+  // Batch-fetch uri(cardId) for all 3 cards
+  const { data: cardUris } = useReadContracts({
+    contracts: cardIds.map((id) => ({
+      address: PACK1155_ADDRESS,
+      abi: PACK1155_ABI,
+      functionName: 'uri' as const,
+      args: [BigInt(id)],
+    })),
   });
 
   // Fetch fortune SVG
@@ -110,16 +112,17 @@ export function ReadingCard({ tokenId, cardIds, index }: ReadingCardProps) {
     fetchFortune();
   }, [tokenId]);
 
-  // Fetch card metadata
+  // Fetch card metadata using the per-card URIs
   useEffect(() => {
-    if (!metadataUri) return;
+    if (!cardUris || cardUris.some((r) => !r.result)) return;
 
     const fetchCards = async () => {
       const metadata: (CardMetadata | null)[] = [null, null, null];
 
       for (let i = 0; i < 3; i++) {
         try {
-          const url = ipfsToGateway(`${metadataUri}${cardIds[i]}.json`);
+          // uri(cardId) returns the full path (e.g. ipfs://bafybei.../5.json)
+          const url = ipfsToGateway(cardUris[i].result as string);
           const response = await fetch(url);
           const data = await response.json();
           metadata[i] = { name: data.name, animation_url: data.animation_url };
@@ -133,7 +136,7 @@ export function ReadingCard({ tokenId, cardIds, index }: ReadingCardProps) {
     };
 
     fetchCards();
-  }, [metadataUri, cardIds]);
+  }, [cardUris]);
 
   const closeFortuneModal = useCallback(() => setFortuneModalOpen(false), []);
   const closeCardModal = useCallback(() => setCardModalOpen(null), []);

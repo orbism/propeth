@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useReadContract } from 'wagmi';
+import { useReadContracts } from 'wagmi';
 import Link from 'next/link';
 import { PACK1155_ADDRESS, PACK1155_ABI } from '@/lib/contracts';
 import { ipfsToGateway, ipfsToProxy } from '@/lib/ipfs';
@@ -20,24 +20,27 @@ export function UnfinishedReadingCard({ cardIds }: UnfinishedReadingCardProps) {
   const [loading, setLoading] = useState(true);
   const [videosReady, setVideosReady] = useState<boolean[]>([false, false, false]);
 
-  // Get metadata URI from Pack1155
-  const { data: metadataUri } = useReadContract({
-    address: PACK1155_ADDRESS,
-    abi: PACK1155_ABI,
-    functionName: 'uri',
-    args: [BigInt(0)],
+  // Batch-fetch uri(cardId) for all 3 cards
+  const { data: cardUris } = useReadContracts({
+    contracts: cardIds.map((id) => ({
+      address: PACK1155_ADDRESS,
+      abi: PACK1155_ABI,
+      functionName: 'uri' as const,
+      args: [BigInt(id)],
+    })),
   });
 
-  // Fetch card metadata
+  // Fetch card metadata using the per-card URIs
   useEffect(() => {
-    if (!metadataUri) return;
+    if (!cardUris || cardUris.some((r) => !r.result)) return;
 
     const fetchCards = async () => {
       const metadata: (CardMetadata | null)[] = [null, null, null];
 
       const fetchPromises = cardIds.map(async (id, i) => {
         try {
-          const url = ipfsToGateway(`${metadataUri}${id}.json`);
+          // uri(cardId) returns the full path (e.g. ipfs://bafybei.../5.json)
+          const url = ipfsToGateway(cardUris[i].result as string);
           const response = await fetch(url);
           const data = await response.json();
           metadata[i] = { name: data.name, animation_url: data.animation_url };
@@ -52,7 +55,7 @@ export function UnfinishedReadingCard({ cardIds }: UnfinishedReadingCardProps) {
     };
 
     fetchCards();
-  }, [metadataUri, cardIds]);
+  }, [cardUris, cardIds]);
 
   const handleVideoCanPlay = (index: number) => {
     setVideosReady(prev => {
