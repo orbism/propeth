@@ -8,6 +8,7 @@ import "@openzeppelin-upgradeable/contracts/utils/PausableUpgradeable.sol";
 import "@openzeppelin-upgradeable/contracts/utils/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin-upgradeable/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 import "./interfaces/IRandomness.sol";
 
 interface IFortune721 {
@@ -293,6 +294,10 @@ contract Pack1155Upgradeable is
 
     function setURI(string memory newURI) external onlyOwnerOrAdmin {
         _setURI(newURI);
+    }
+
+    function uri(uint256 id) public view override returns (string memory) {
+        return string.concat(super.uri(id), Strings.toString(id), ".json");
     }
 
     function setMaxSupply(uint256 id, uint256 supply) external onlyOwnerOrAdmin {

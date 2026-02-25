@@ -10,9 +10,9 @@ export function Footer() {
       <span> | Dev: </span>
       <a href="https://x.com/ArtOfOrb" target="_blank" rel="noopener noreferrer" className="hover:text-white/70 transition-colors">orb</a>
       <span> | </span>
-      <a href={`https://etherscan.io/address/0x92B99Bf5dBE5762e9a15f2F901e7E78cE8553514`} target="_blank" rel="noopener noreferrer" className="hover:text-white/70 transition-colors">1155 Contract</a>
+      <a href={`https://etherscan.io/address/${PACK1155_ADDRESS}`} target="_blank" rel="noopener noreferrer" className="hover:text-white/70 transition-colors">1155 Contract</a>
       <span> | </span>
-      <a href={`https://etherscan.io/address/0xf679E5015985C2c553f30BF62b1666736fe19494`} target="_blank" rel="noopener noreferrer" className="hover:text-white/70 transition-colors">721 Contract</a>
+      <a href={`https://etherscan.io/address/${FORTUNE721_ADDRESS}`} target="_blank" rel="noopener noreferrer" className="hover:text-white/70 transition-colors">721 Contract</a>
       {/* <span> | </span> */}
       {/* <a href={`https://opensea.io/assets/ethereum/${PACK1155_ADDRESS}`} target="_blank" rel="noopener noreferrer" className="hover:text-white/70 transition-colors">Fortune Cards</a>
       <span> | </span>
