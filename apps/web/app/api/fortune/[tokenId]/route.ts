@@ -61,19 +61,19 @@ export async function GET(
         address: FORTUNE721_ADDRESS,
         abi: FORTUNE721_ABI,
         functionName: 'fragmentTexts',
-        args: [card1, 1n, variant1],
+        args: [card1, BigInt(1), variant1],
       }) as Promise<string>,
       client.readContract({
         address: FORTUNE721_ADDRESS,
         abi: FORTUNE721_ABI,
         functionName: 'fragmentTexts',
-        args: [card2, 2n, variant2],
+        args: [card2, BigInt(2), variant2],
       }) as Promise<string>,
       client.readContract({
         address: FORTUNE721_ADDRESS,
         abi: FORTUNE721_ABI,
         functionName: 'fragmentTexts',
-        args: [card3, 3n, variant3],
+        args: [card3, BigInt(3), variant3],
       }) as Promise<string>,
       client.readContract({
         address: FORTUNE721_ADDRESS,
