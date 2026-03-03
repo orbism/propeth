@@ -40,7 +40,6 @@ contract Fortune721Upgradeable is
     address public payoutAddress;
     address public admin;
     address public pack1155;
-    string public animationBaseURI;
 
     /// @notice Mapping: cardId => position => variant => text string
     mapping(uint256 => mapping(uint256 => mapping(uint256 => string))) public fragmentTexts;
@@ -60,6 +59,8 @@ contract Fortune721Upgradeable is
 
     /// @notice Track if fortune was created from the last three cards
     mapping(address => bool) public fortuneCreatedFromLastThree;
+
+    string public animationBaseURI;
 
     event FortuneMinted(
         address indexed to,
