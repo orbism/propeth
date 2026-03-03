@@ -61,6 +61,7 @@ contract Fortune721Upgradeable is
     mapping(address => bool) public fortuneCreatedFromLastThree;
 
     string public animationBaseURI;
+    string public thumbnailURI;
 
     event FortuneMinted(
         address indexed to,
@@ -272,8 +273,8 @@ contract Fortune721Upgradeable is
                 tokenId.toString(),
                 '","description":"A mystical fortune composed from the triptych of cards ',
                 data.card1.toString(), ", ", data.card2.toString(), ", ", data.card3.toString(),
-                '","image":"data:image/svg+xml;base64,',
-                Base64.encode(bytes(svg)),
+                '","image":"',
+                bytes(thumbnailURI).length > 0 ? thumbnailURI : string(abi.encodePacked("data:image/svg+xml;base64,", Base64.encode(bytes(svg)))),
                 '"',
                 animationField,
                 ',"attributes":[',
@@ -308,6 +309,10 @@ contract Fortune721Upgradeable is
 
     function setAnimationBaseURI(string calldata _uri) external onlyOwnerOrAdmin {
         animationBaseURI = _uri;
+    }
+
+    function setThumbnailURI(string calldata _uri) external onlyOwnerOrAdmin {
+        thumbnailURI = _uri;
     }
 
     function setFragmentText(uint256 cardId, uint256 position, uint256 variant, string calldata text)

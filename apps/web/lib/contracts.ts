@@ -176,6 +176,31 @@ export const FORTUNE721_ABI = [
   },
   {
     type: 'function',
+    name: 'fragmentTexts',
+    inputs: [
+      { name: 'cardId', type: 'uint256' },
+      { name: 'position', type: 'uint256' },
+      { name: 'variant', type: 'uint256' },
+    ],
+    outputs: [{ name: '', type: 'string' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'baseBgCID',
+    inputs: [],
+    outputs: [{ name: '', type: 'string' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'fontURI',
+    inputs: [],
+    outputs: [{ name: '', type: 'string' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
     name: 'totalSupply',
     inputs: [],
     outputs: [{ name: '', type: 'uint256' }],
