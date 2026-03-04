@@ -61,8 +61,3 @@ After deployment, update `apps/web/.env.local`:
 NEXT_PUBLIC_PACK1155=<Pack1155 proxy address>
 NEXT_PUBLIC_FORTUNE721=<Fortune721 proxy address>
 ```
-
-## Documentation
-
-- [Contracts README](apps/contracts/README.md) - Smart contract documentation
-- [CLAUDE.md](CLAUDE.md) - Development notes and architecture details
