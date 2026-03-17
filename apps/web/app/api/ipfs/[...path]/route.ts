@@ -5,6 +5,8 @@
  * which causes video elements to fail loading.
  */
 
+import { debug } from '@/lib/debug';
+
 const IPFS_GATEWAY_URL = process.env.NEXT_PUBLIC_IPFS_GATEWAY_URL || 'https://propeth.4everland.link/ipfs/';
 
 export async function GET(
@@ -65,7 +67,7 @@ export async function GET(
       headers: responseHeaders,
     });
   } catch (error) {
-    console.error('[IPFS Proxy] Error fetching from gateway:', error);
+    debug.error('[IPFS Proxy] Error fetching from gateway:', error);
     return new Response('Failed to fetch from IPFS gateway', {
       status: 502,
       headers: {

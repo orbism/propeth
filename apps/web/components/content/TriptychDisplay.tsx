@@ -6,6 +6,7 @@ import { useAppStore } from '@/lib/store';
 import { PACK1155_ADDRESS, PACK1155_ABI } from '@/lib/contracts';
 import { ipfsToGateway, ipfsToProxy } from '@/lib/ipfs';
 import { useUserFortunes } from '@/lib/hooks/useUserFortunes';
+import { debug } from '@/lib/debug';
 
 interface CardMetadata {
   name: string;
@@ -34,14 +35,14 @@ export function TriptychDisplay({ cardIds: providedCardIds, hasFortune }: Tripty
 
   // Update store if we got cards from useUserFortunes (only once)
   useEffect(() => {
-    console.log('[TriptychDisplay] Sync check:', {
+    debug.log('[TriptychDisplay] Sync check:', {
       hasSynced: hasSyncedRef.current,
       storeTriptychIds,
       hookCardIds,
       providedCardIds,
     });
     if (!hasSyncedRef.current && !storeTriptychIds && hookCardIds) {
-      console.log('[TriptychDisplay] Syncing hookCardIds to store:', hookCardIds);
+      debug.log('[TriptychDisplay] Syncing hookCardIds to store:', hookCardIds);
       hasSyncedRef.current = true;
       setTriptychIds(hookCardIds);
     }
@@ -77,7 +78,7 @@ export function TriptychDisplay({ cardIds: providedCardIds, hasFortune }: Tripty
     if (!cardUris || !cardIdsKey || cardUris.some((r) => !r.result)) return;
 
     const ids = cardIdsKey.split(',');
-    console.log('[TriptychDisplay] Fetching metadata for cards:', ids);
+    debug.log('[TriptychDisplay] Fetching metadata for cards:', ids);
 
     const fetchAllMetadata = async () => {
       const metadata: (CardMetadata | null)[] = [null, null, null];
@@ -86,7 +87,7 @@ export function TriptychDisplay({ cardIds: providedCardIds, hasFortune }: Tripty
         try {
           // uri(cardId) returns the full path (e.g. ipfs://bafybei.../5.json)
           const url = ipfsToGateway(cardUris[i].result as string);
-          console.log(`[TriptychDisplay] Fetching metadata for card ${i} from:`, url);
+          debug.log(`[TriptychDisplay] Fetching metadata for card ${i} from:`, url);
           const response = await fetch(url);
           const data = await response.json();
           metadata[i] = {
@@ -96,12 +97,12 @@ export function TriptychDisplay({ cardIds: providedCardIds, hasFortune }: Tripty
             image: data.image
           };
         } catch (error) {
-          console.error(`Failed to fetch metadata for card ${i}:`, error);
+          debug.error(`Failed to fetch metadata for card ${i}:`, error);
         }
       });
 
       await Promise.all(fetchPromises);
-      console.log('[TriptychDisplay] Metadata loaded:', metadata.map(m => m?.name));
+      debug.log('[TriptychDisplay] Metadata loaded:', metadata.map(m => m?.name));
       setCardMetadata(metadata);
       setMetadataLoaded(true);
     };

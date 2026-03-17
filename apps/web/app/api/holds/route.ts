@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createPublicClient, http, type Address } from 'viem';
 import { mainnet, sepolia, foundry } from 'viem/chains';
+import { debug } from '@/lib/debug';
 
 const PROMISE_CONTRACT = (process.env.NEXT_PUBLIC_PROMISE_CONTRACT || '') as Address;
 const PROMISE_CHAIN_ID = Number(process.env.NEXT_PUBLIC_PROMISE_CHAIN_ID || '1');
@@ -8,7 +9,7 @@ const PROMISE_TOKEN_ID = BigInt(process.env.NEXT_PUBLIC_PROMISE_TOKEN_ID || '1')
 const ALCHEMY_KEY = process.env.ALCHEMY_KEY || '';
 const INFURA_KEY = process.env.INFURA_KEY || '';
 
-console.log('🔧 [API /api/holds] Env loaded', {
+debug.log('🔧 [API /api/holds] Env loaded', {
   contract: PROMISE_CONTRACT,
   chainId: PROMISE_CHAIN_ID,
   tokenId: PROMISE_TOKEN_ID.toString(),
@@ -32,7 +33,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const owner = searchParams.get('owner') as Address | null;
 
-  console.log('🔍 [API /api/holds] Request received', {
+  debug.log('🔍 [API /api/holds] Request received', {
     owner,
     contract: PROMISE_CONTRACT,
     chainId: PROMISE_CHAIN_ID,
@@ -47,7 +48,7 @@ export async function GET(req: NextRequest) {
 
   // Check if contract is set (tokenId can be 0, which is valid but falsy)
   if (!PROMISE_CONTRACT) {
-    console.error('❌ [API /api/holds] Missing PROMISE_CONTRACT in env');
+    debug.error('❌ [API /api/holds] Missing PROMISE_CONTRACT in env');
     return NextResponse.json(
       { error: 'Server misconfigured: missing Promise contract' },
       { status: 500 }
@@ -86,7 +87,7 @@ export async function GET(req: NextRequest) {
       transport,
     });
 
-    console.log('📡 [API /api/holds] Checking NFT ownership (ERC1155)...', {
+    debug.log('📡 [API /api/holds] Checking NFT ownership (ERC1155)...', {
       tokenId: PROMISE_TOKEN_ID.toString(),
     });
 
@@ -102,14 +103,14 @@ export async function GET(req: NextRequest) {
 
       holds = balance > BigInt(0);
 
-      console.log('✅ [API /api/holds] Ownership check complete', {
+      debug.log('✅ [API /api/holds] Ownership check complete', {
         owner,
         tokenId: PROMISE_TOKEN_ID.toString(),
         balance: balance.toString(),
         holds,
       });
     } catch (err: any) {
-      console.log('⚠️ [API /api/holds] balanceOf failed', err.message);
+      debug.log('⚠️ [API /api/holds] balanceOf failed', err.message);
       holds = false;
     }
 
@@ -126,7 +127,7 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (error: any) {
-    console.error('❌ [API /api/holds] Error reading balance', {
+    debug.error('❌ [API /api/holds] Error reading balance', {
       error: error.message,
       stack: error.stack,
       owner,

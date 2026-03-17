@@ -3,6 +3,7 @@ import { BURN_GATEWAY_ADDRESS, BURN_GATEWAY_ABI, PACK1155_ADDRESS, PACK1155_ABI 
 import { useAppStore } from '@/lib/store';
 import { useEffect, useState } from 'react';
 import { Address } from 'viem';
+import { debug } from '../debug';
 
 // ERC721 setApprovalForAll ABI
 const ERC721_ABI = [
@@ -53,7 +54,7 @@ export function useBurnAndMint() {
   // Debug: Log adapter lookup status
   useEffect(() => {
     if (promiseNft) {
-      console.log('[useBurnAndMint] 🔍 Adapter lookup:', {
+      debug.log('[useBurnAndMint] 🔍 Adapter lookup:', {
         gateway: BURN_GATEWAY_ADDRESS,
         promiseNft,
         adapterAddress,
@@ -63,11 +64,11 @@ export function useBurnAndMint() {
       });
 
       if (!BURN_GATEWAY_ADDRESS) {
-        console.error('[useBurnAndMint] ❌ BURN_GATEWAY_ADDRESS is not configured!');
+        debug.error('[useBurnAndMint] ❌ BURN_GATEWAY_ADDRESS is not configured!');
       }
       if (adapterAddress === '0x0000000000000000000000000000000000000000') {
-        console.error('[useBurnAndMint] ❌ No adapter registered for Promise NFT in gateway!');
-        console.error('   You need to call gateway.setAdapter(promiseNft, adapterAddress) on the contract');
+        debug.error('[useBurnAndMint] ❌ No adapter registered for Promise NFT in gateway!');
+        debug.error('   You need to call gateway.setAdapter(promiseNft, adapterAddress) on the contract');
       }
     }
   }, [promiseNft, adapterAddress, adapterError, adapterLoading]);
@@ -101,13 +102,13 @@ export function useBurnAndMint() {
   // Debug: Log writeContract errors
   useEffect(() => {
     if (writeError) {
-      console.error('[useBurnAndMint] ❌ Write contract error:', writeError.message);
+      debug.error('[useBurnAndMint] ❌ Write contract error:', writeError.message);
     }
   }, [writeError]);
 
   // Helper: Query lastThreeCardsMinted directly from Pack1155
   const queryLastThreeCards = async (userAddress: Address) => {
-    console.log('🔍 [useBurnAndMint] Querying lastThreeCardsMinted for address:', userAddress);
+    debug.log('🔍 [useBurnAndMint] Querying lastThreeCardsMinted for address:', userAddress);
     
     try {
       const cards = await publicClient.readContract({
@@ -118,7 +119,7 @@ export function useBurnAndMint() {
       });
       return cards as readonly [bigint, bigint, bigint];
     } catch (error) {
-      console.error('NOPE [useBurnAndMint] Failed to query lastThreeCardsMinted:', error);
+      debug.error('NOPE [useBurnAndMint] Failed to query lastThreeCardsMinted:', error);
       return null;
     }
   };
@@ -138,11 +139,11 @@ export function useBurnAndMint() {
     );
 
     if (!hasPackMintedEvent) {
-      console.log('[useBurnAndMint] Receipt has no PackMinted event, waiting for burn tx...');
+      debug.log('[useBurnAndMint] Receipt has no PackMinted event, waiting for burn tx...');
       return;
     }
 
-    console.log('[useBurnAndMint] ✅ Burn tx confirmed with PackMinted event, querying cards...');
+    debug.log('[useBurnAndMint] ✅ Burn tx confirmed with PackMinted event, querying cards...');
     setBurnCompleted(true);
 
     (async () => {
@@ -151,7 +152,7 @@ export function useBurnAndMint() {
 
       const cards = await queryLastThreeCards(userAddress);
       if (cards && (cards[0] !== BigInt(0) || cards[1] !== BigInt(0) || cards[2] !== BigInt(0))) {
-        console.log('[useBurnAndMint] ✅ Got cards:', cards.map(id => id.toString()));
+        debug.log('[useBurnAndMint] ✅ Got cards:', cards.map(id => id.toString()));
         // Convert bigints to strings for store
         const stringIds: readonly [string, string, string] = [
           cards[0].toString(),
@@ -161,7 +162,7 @@ export function useBurnAndMint() {
         setTriptychIds(stringIds);
         setCurrentStep('triptych-display');
       } else {
-        console.error('[useBurnAndMint] ❌ Cards query returned zeros or failed');
+        debug.error('[useBurnAndMint] ❌ Cards query returned zeros or failed');
         setCurrentStep('landing');
       }
     })();
@@ -175,34 +176,34 @@ export function useBurnAndMint() {
 
     // Check for missing gateway configuration
     if (!BURN_GATEWAY_ADDRESS) {
-      console.error('[useBurnAndMint] ❌ Cannot proceed: BURN_GATEWAY_ADDRESS not configured');
+      debug.error('[useBurnAndMint] ❌ Cannot proceed: BURN_GATEWAY_ADDRESS not configured');
       return;
     }
 
     // Still loading adapter
     if (adapterLoading) {
-      console.log('[useBurnAndMint] ⏳ Waiting for adapter lookup...');
+      debug.log('[useBurnAndMint] ⏳ Waiting for adapter lookup...');
       return;
     }
 
     // No adapter registered
     if (!adapterAddress || adapterAddress === '0x0000000000000000000000000000000000000000') {
-      console.error('[useBurnAndMint] ❌ Cannot proceed: No adapter registered for Promise NFT');
+      debug.error('[useBurnAndMint] ❌ Cannot proceed: No adapter registered for Promise NFT');
       return;
     }
 
     // Still checking approval status
     if (approvalLoading) {
-      console.log('[useBurnAndMint] ⏳ Waiting for approval check...');
+      debug.log('[useBurnAndMint] ⏳ Waiting for approval check...');
       return;
     }
 
     const isApproved = approvedAddress === true;
-    console.log('[useBurnAndMint] 🔍 Phase check - approved:', isApproved, 'adapter:', adapterAddress, 'approvalLoading:', approvalLoading);
+    debug.log('[useBurnAndMint] 🔍 Phase check - approved:', isApproved, 'adapter:', adapterAddress, 'approvalLoading:', approvalLoading);
 
     if (!isApproved) {
       // Need approval first
-      console.log('[useBurnAndMint] 📝 Phase 1: Requesting approval for adapter');
+      debug.log('[useBurnAndMint] 📝 Phase 1: Requesting approval for adapter');
       setPhase('approval');
 
       writeContract({
@@ -213,7 +214,7 @@ export function useBurnAndMint() {
       });
     } else {
       // Already approved, go straight to burn
-      console.log('[useBurnAndMint] ✅ Already approved, transitioning to burn phase');
+      debug.log('[useBurnAndMint] ✅ Already approved, transitioning to burn phase');
       setPhase('burn');
     }
   }, [promiseNft, adapterAddress, adapterLoading, tokenId, userAddress, currentStep, phase, isWritePending, isConfirming, approvedAddress, approvalLoading, writeContract]);
@@ -225,10 +226,10 @@ export function useBurnAndMint() {
     if (isWritePending || isConfirming) return;
     if (!promiseNft || tokenId === undefined) return;
 
-    console.log('[useBurnAndMint] 🔥 Phase 2: Sending burn transaction');
-    console.log('[useBurnAndMint] → Gateway:', BURN_GATEWAY_ADDRESS);
-    console.log('[useBurnAndMint] → Promise NFT:', promiseNft);
-    console.log('[useBurnAndMint] → Token ID:', tokenId.toString());
+    debug.log('[useBurnAndMint] 🔥 Phase 2: Sending burn transaction');
+    debug.log('[useBurnAndMint] → Gateway:', BURN_GATEWAY_ADDRESS);
+    debug.log('[useBurnAndMint] → Promise NFT:', promiseNft);
+    debug.log('[useBurnAndMint] → Token ID:', tokenId.toString());
 
     setBurnTxSent(true);
 
@@ -254,8 +255,8 @@ export function useBurnAndMint() {
     );
 
     if (hasApprovalForAllEvent) {
-      console.log('[useBurnAndMint] ✅ Phase 1 complete: Approval confirmed');
-      console.log('[useBurnAndMint] → Transitioning to burn phase...');
+      debug.log('[useBurnAndMint] ✅ Phase 1 complete: Approval confirmed');
+      debug.log('[useBurnAndMint] → Transitioning to burn phase...');
       // Reset write state before transitioning
       resetWriteContract();
       setPhase('burn');
@@ -263,13 +264,13 @@ export function useBurnAndMint() {
   }, [isSuccess, receipt, phase, promiseNft, adapterAddress, tokenId, resetWriteContract]);
 
   const burnAndMint = (promiseNftAddress: Address, nftTokenId: bigint) => {
-    console.log('[useBurnAndMint] 🚀 Starting burn process');
-    console.log('[useBurnAndMint] → Promise NFT:', promiseNftAddress);
-    console.log('[useBurnAndMint] → Token ID:', nftTokenId.toString());
-    console.log('[useBurnAndMint] → Gateway:', BURN_GATEWAY_ADDRESS);
+    debug.log('[useBurnAndMint] 🚀 Starting burn process');
+    debug.log('[useBurnAndMint] → Promise NFT:', promiseNftAddress);
+    debug.log('[useBurnAndMint] → Token ID:', nftTokenId.toString());
+    debug.log('[useBurnAndMint] → Gateway:', BURN_GATEWAY_ADDRESS);
 
     if (!BURN_GATEWAY_ADDRESS) {
-      console.error('[useBurnAndMint] ❌ BURN_GATEWAY_ADDRESS is empty!');
+      debug.error('[useBurnAndMint] ❌ BURN_GATEWAY_ADDRESS is empty!');
       return;
     }
 

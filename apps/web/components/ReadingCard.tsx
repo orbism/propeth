@@ -5,6 +5,7 @@ import { useReadContracts } from 'wagmi';
 import { PACK1155_ADDRESS, PACK1155_ABI } from '@/lib/contracts';
 import { ipfsToGateway, ipfsToProxy } from '@/lib/ipfs';
 import Image from 'next/image';
+import { debug } from '@/lib/debug';
 
 interface ReadingCardProps {
   tokenId: string;
@@ -105,7 +106,7 @@ export function ReadingCard({ tokenId, cardIds, index }: ReadingCardProps) {
           }
         }
       } catch (error) {
-        console.error('Failed to fetch fortune:', error);
+        debug.error('Failed to fetch fortune:', error);
       }
     };
 
@@ -127,7 +128,7 @@ export function ReadingCard({ tokenId, cardIds, index }: ReadingCardProps) {
           const data = await response.json();
           metadata[i] = { name: data.name, animation_url: data.animation_url };
         } catch (error) {
-          console.error(`Failed to fetch card ${i} metadata:`, error);
+          debug.error(`Failed to fetch card ${i} metadata:`, error);
         }
       }
 
@@ -183,7 +184,7 @@ export function ReadingCard({ tokenId, cardIds, index }: ReadingCardProps) {
       };
       img.src = url;
     } catch (error) {
-      console.error('Failed to download PNG:', error);
+      debug.error('Failed to download PNG:', error);
     }
   };
 

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useReadContract } from 'wagmi';
 import { PACK1155_ADDRESS, PACK1155_ABI } from '@/lib/contracts';
 import { ipfsToGateway, ipfsToProxy } from '@/lib/ipfs';
+import { debug } from '@/lib/debug';
 
 interface CardMetadata {
   name: string;
@@ -39,7 +40,7 @@ export function CardDisplay({ cardId }: CardDisplayProps) {
         const data = await response.json();
         setMetadata(data);
       } catch (error) {
-        console.error('Failed to fetch card metadata:', error);
+        debug.error('Failed to fetch card metadata:', error);
       } finally {
         setLoading(false);
       }

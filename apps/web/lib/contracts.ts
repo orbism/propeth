@@ -1,4 +1,5 @@
 import { Address } from 'viem';
+import { debug } from './debug';
 
 // Contract addresses from env
 export const PACK1155_ADDRESS = (process.env.NEXT_PUBLIC_PACK1155 || '') as Address;
@@ -14,10 +15,10 @@ if (typeof window !== 'undefined') {
   if (!FORTUNE721_ADDRESS) missingAddresses.push('NEXT_PUBLIC_FORTUNE721');
   
   if (missingAddresses.length > 0) {
-    console.error('❌ [Contracts] Missing required environment variables:', missingAddresses);
-    console.error('   Please update your .env.local file with deployed contract addresses');
+    debug.error('❌ [Contracts] Missing required environment variables:', missingAddresses);
+    debug.error('   Please update your .env.local file with deployed contract addresses');
   } else if (process.env.NODE_ENV === 'development') {
-    console.log('✅ [Contracts] All addresses loaded', {
+    debug.log('✅ [Contracts] All addresses loaded', {
       pack: PACK1155_ADDRESS,
       gateway: BURN_GATEWAY_ADDRESS,
       fortune: FORTUNE721_ADDRESS,

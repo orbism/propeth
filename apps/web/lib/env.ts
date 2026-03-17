@@ -1,5 +1,6 @@
 // Centralized environment access for Promise NFT config.
 // Only use NEXT_PUBLIC_* so the behavior is explicit and client-safe.
+import { debug } from './debug';
 
 const RAW_CONTRACT = (process.env.NEXT_PUBLIC_PROMISE_CONTRACT ?? '').trim();
 const RAW_TOKEN_ID = (process.env.NEXT_PUBLIC_PROMISE_TOKEN_ID ?? '').trim();
@@ -7,7 +8,7 @@ const RAW_CHAIN_ID = (process.env.NEXT_PUBLIC_PROMISE_CHAIN_ID ?? '').trim();
 
 // Debug logging
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-  console.log('🔧 [env.ts] Promise NFT config loaded', {
+  debug.log('🔧 [env.ts] Promise NFT config loaded', {
     contract: RAW_CONTRACT,
     tokenId: RAW_TOKEN_ID,
     chainId: RAW_CHAIN_ID,

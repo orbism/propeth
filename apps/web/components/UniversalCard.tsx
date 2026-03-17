@@ -16,6 +16,7 @@ import { useMintFortune } from '@/lib/hooks/useMintFortune';
 import { useBurnAndMint } from '@/lib/hooks/useBurnAndMint';
 import { useAccount } from 'wagmi';
 import { useState, useEffect } from 'react';
+import { debug } from '@/lib/debug';
 
 export function UniversalCard() {
   const { address } = useAccount();
@@ -38,7 +39,7 @@ export function UniversalCard() {
   // Debug logging for burn phase
   useEffect(() => {
     if (burnPhase !== 'idle') {
-      console.log('[UniversalCard] 🔥 Burn phase:', burnPhase);
+      debug.log('[UniversalCard] 🔥 Burn phase:', burnPhase);
     }
   }, [burnPhase]);
 
@@ -57,7 +58,7 @@ export function UniversalCard() {
   // Close fortune reveal modal when fortune is successfully minted
   useEffect(() => {
     if (isMintingFortune === false && fortuneTokenId !== null) {
-      console.log('[UniversalCard] Fortune minted, transitioning to fourth-card-mint');
+      debug.log('[UniversalCard] Fortune minted, transitioning to fourth-card-mint');
     }
   }, [isMintingFortune, fortuneTokenId]);
 
@@ -72,7 +73,7 @@ export function UniversalCard() {
     if (address) {
       const promiseNftAddress = process.env.NEXT_PUBLIC_PROMISE_CONTRACT as `0x${string}`;
       if (!promiseNftAddress) {
-        console.error('NEXT_PUBLIC_PROMISE_CONTRACT not configured');
+        debug.error('NEXT_PUBLIC_PROMISE_CONTRACT not configured');
         alert('Promise NFT address not configured. Check .env.local');
         return;
       }
@@ -83,7 +84,7 @@ export function UniversalCard() {
         ? BigInt(ownedTokenIds[0])
         : configuredTokenId;
 
-      console.log('[UniversalCard] Attempting to burn token ID:', tokenIdToBurn.toString());
+      debug.log('[UniversalCard] Attempting to burn token ID:', tokenIdToBurn.toString());
 
       setCurrentStep('minting');
       burnAndMint(promiseNftAddress, tokenIdToBurn);

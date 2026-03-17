@@ -6,6 +6,7 @@ import { mainnet } from 'wagmi/chains';
 import { useAppStore } from '@/lib/store';
 import { ModalFrame } from '@/components/ui/ModalFrame';
 import { PROMISE_CHAIN_ID } from '@/lib/env';
+import { debug } from '@/lib/debug';
 
 interface TokenCheckModalProps {
   isOpen: boolean;
@@ -27,7 +28,7 @@ export function TokenCheckModal({ isOpen, onComplete }: TokenCheckModalProps) {
     // Get expected chain from env (default to mainnet if not set)
     const expectedChainId = PROMISE_CHAIN_ID || mainnet.id;
 
-    console.log('🎰 [TokenCheckModal] Starting check', {
+    debug.log('🎰 [TokenCheckModal] Starting check', {
       address,
       chain: chain?.name,
       chainId: chain?.id,
@@ -40,7 +41,7 @@ export function TokenCheckModal({ isOpen, onComplete }: TokenCheckModalProps) {
       const chainName = expectedChainId === 1337 ? 'Local 8545' : 
                        expectedChainId === 11155111 ? 'Sepolia' : 
                        'Ethereum Mainnet';
-      console.warn(`⚠️  [TokenCheckModal] User not on ${chainName}, prompting switch`);
+      debug.warn(`⚠️  [TokenCheckModal] User not on ${chainName}, prompting switch`);
       setNeedsNetworkSwitch(true);
       setStatusMessage(`Please switch to ${chainName}`);
       setIsChecking(false);
@@ -52,16 +53,16 @@ export function TokenCheckModal({ isOpen, onComplete }: TokenCheckModalProps) {
 
     const checkHoldings = async () => {
       try {
-        console.log('📡 [TokenCheckModal] Calling /api/holds', { address });
+        debug.log('📡 [TokenCheckModal] Calling /api/holds', { address });
         setStatusMessage('Checking with oracles...');
 
         const response = await fetch(`/api/holds?owner=${address}`);
         const data = await response.json();
 
-        console.log('📦 [TokenCheckModal] API response', data);
+        debug.log('📦 [TokenCheckModal] API response', data);
 
         if (!response.ok) {
-          console.error('❌ [TokenCheckModal] API error', data);
+          debug.error('❌ [TokenCheckModal] API error', data);
           setPromiseHolderStatus(false);
           setStatusMessage('Check failed, proceeding anyway...');
           setTimeout(() => onComplete(), 1000);
@@ -69,7 +70,7 @@ export function TokenCheckModal({ isOpen, onComplete }: TokenCheckModalProps) {
         }
 
         const hasPromise = data.holds === true;
-        console.log('✅ [TokenCheckModal] Holdings check complete', {
+        debug.log('✅ [TokenCheckModal] Holdings check complete', {
           holds: hasPromise,
           balance: data.balance,
           debug: data.debug,
@@ -81,7 +82,7 @@ export function TokenCheckModal({ isOpen, onComplete }: TokenCheckModalProps) {
 
         setTimeout(() => onComplete(), 800);
       } catch (error: any) {
-        console.error('💥 [TokenCheckModal] Unexpected error', {
+        debug.error('💥 [TokenCheckModal] Unexpected error', {
           error: error.message,
           stack: error.stack,
         });
@@ -96,7 +97,7 @@ export function TokenCheckModal({ isOpen, onComplete }: TokenCheckModalProps) {
 
   const handleSwitchNetwork = () => {
     const targetChainId = PROMISE_CHAIN_ID || mainnet.id;
-    console.log('🔄 [TokenCheckModal] User requested network switch', { targetChainId });
+    debug.log('🔄 [TokenCheckModal] User requested network switch', { targetChainId });
     if (switchChain) {
       switchChain({ chainId: targetChainId });
       // Reset to allow re-check after switch
