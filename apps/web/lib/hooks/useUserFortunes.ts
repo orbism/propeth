@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAccount, usePublicClient } from 'wagmi';
 import { FORTUNE721_ADDRESS, FORTUNE721_ABI, PACK1155_ADDRESS, PACK1155_ABI } from '@/lib/contracts';
 import { parseAbiItem } from 'viem';
+import { debug } from '../debug';
 
 export interface FortuneReading {
   tokenId: string;
@@ -35,7 +36,7 @@ export function useUserFortunes() {
       setError(null);
 
       try {
-        console.log('[useUserFortunes] Fetching data for:', address);
+        debug.log('[useUserFortunes] Fetching data for:', address);
 
         // Check for unfinished reading first
         const [hasMintedPack, fortuneCreatedFromLastThree] = await Promise.all([
@@ -53,11 +54,11 @@ export function useUserFortunes() {
           }),
         ]);
 
-        console.log('[useUserFortunes] hasMintedPack:', hasMintedPack, 'fortuneCreated:', fortuneCreatedFromLastThree);
+        debug.log('[useUserFortunes] hasMintedPack:', hasMintedPack, 'fortuneCreated:', fortuneCreatedFromLastThree);
 
         // If has cards but no fortune from them, fetch the card IDs from contract
         if (hasMintedPack && !fortuneCreatedFromLastThree) {
-          console.log('[useUserFortunes] User has unfinished reading, fetching card IDs from contract');
+          debug.log('[useUserFortunes] User has unfinished reading, fetching card IDs from contract');
 
           // Use getLastThreeCardsMinted to get the exact cards the contract expects
           const lastThreeCards = await publicClient.readContract({
@@ -67,7 +68,7 @@ export function useUserFortunes() {
             args: [address],
           }) as [bigint, bigint, bigint];
 
-          console.log('[useUserFortunes] Contract lastThreeCardsMinted:', lastThreeCards.map(String));
+          debug.log('[useUserFortunes] Contract lastThreeCardsMinted:', lastThreeCards.map(String));
 
           // Check if cards are valid (not all zeros)
           if (lastThreeCards[0] !== BigInt(0) || lastThreeCards[1] !== BigInt(0) || lastThreeCards[2] !== BigInt(0)) {
@@ -78,7 +79,7 @@ export function useUserFortunes() {
             ];
             setUnfinishedReading({ cardIds });
           } else {
-            console.log('[useUserFortunes] lastThreeCardsMinted returned zeros, no unfinished reading');
+            debug.log('[useUserFortunes] lastThreeCardsMinted returned zeros, no unfinished reading');
             setUnfinishedReading(null);
           }
         } else {
@@ -96,7 +97,7 @@ export function useUserFortunes() {
           toBlock: 'latest',
         });
 
-        console.log('[useUserFortunes] Found', logs.length, 'fortune events');
+        debug.log('[useUserFortunes] Found', logs.length, 'fortune events');
 
         // Parse logs into FortuneReading objects (convert bigints to strings)
         const readings: FortuneReading[] = logs.map((log) => {
@@ -115,7 +116,7 @@ export function useUserFortunes() {
 
         setFortunes(readings);
       } catch (err) {
-        console.error('[useUserFortunes] Error fetching data:', err);
+        debug.error('[useUserFortunes] Error fetching data:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch data');
       } finally {
         setIsLoading(false);

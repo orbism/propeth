@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { debug } from '@/lib/debug';
 
 interface FortuneCardProps {
   tokenId: string;
@@ -30,7 +31,7 @@ export function FortuneCard({ tokenId, onSvgReady }: FortuneCardProps) {
         setSvgDataUrl(url);
         onSvgReady?.(url, data.svg);
       } catch (error) {
-        console.error('Failed to fetch fortune SVG:', error);
+        debug.error('Failed to fetch fortune SVG:', error);
       } finally {
         setLoading(false);
       }

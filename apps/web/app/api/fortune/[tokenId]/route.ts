@@ -2,6 +2,7 @@ import { createPublicClient, http } from 'viem';
 import { mainnet, sepolia, foundry } from 'viem/chains';
 import { NextRequest } from 'next/server';
 import { FORTUNE721_ABI, FORTUNE721_ADDRESS } from '@/lib/contracts';
+import { debug } from '@/lib/debug';
 
 const CHAIN_ID = Number(process.env.NEXT_PUBLIC_CHAIN_ID || '1');
 const ALCHEMY_KEY = process.env.ALCHEMY_KEY || '';
@@ -103,7 +104,7 @@ export async function GET(
 
     return Response.json({ svg: svgString });
   } catch (error) {
-    console.error('[API] Error fetching fortune SVG:', error);
+    debug.error('[API] Error fetching fortune SVG:', error);
     return Response.json(
       { error: error instanceof Error ? error.message : 'Failed to fetch fortune SVG' },
       { status: 500 }

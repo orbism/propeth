@@ -8,6 +8,7 @@ import { ModalFrame } from '@/components/ui/ModalFrame';
 import { useAppStore } from '@/lib/store';
 import { useCheckExistingProgress } from '@/lib/hooks/useCheckExistingProgress';
 import Image from 'next/image';
+import { debug } from '@/lib/debug';
 
 export function LandingContent() {
   const { isConnected } = useAccount();
@@ -22,15 +23,15 @@ export function LandingContent() {
       return;
     }
     
-    console.log('[LandingContent] Insert coin clicked, checking existing progress...');
+    debug.log('[LandingContent] Insert coin clicked, checking existing progress...');
     const result = await checkProgress();
     
-    console.log('[LandingContent] Progress check result:', result);
+    debug.log('[LandingContent] Progress check result:', result);
     
     // Both 'none' (new user) and 'fortune' (completed and reset) go to token-check
     // 'cards' is handled by checkProgress directly (goes to triptych-display)
     if (result === 'none' || result === 'fortune') {
-      console.log('[LandingContent] Sending to token-check:', result === 'fortune' ? 'reset' : 'new user');
+      debug.log('[LandingContent] Sending to token-check:', result === 'fortune' ? 'reset' : 'new user');
       setCurrentStep('token-check');
     }
   };

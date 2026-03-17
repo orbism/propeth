@@ -3,6 +3,7 @@ import { PACK1155_ADDRESS, PACK1155_ABI, PRICE_PER_PACK } from '@/lib/contracts'
 import { useAppStore } from '@/lib/store';
 import { useEffect, useState } from 'react';
 import { decodeEventLog, Address } from 'viem';
+import { debug } from '../debug';
 
 export function useMintPack() {
   const { setTriptychIds, setPackTxHash, setCurrentStep } = useAppStore();
@@ -30,7 +31,7 @@ export function useMintPack() {
   // Log any write errors
   useEffect(() => {
     if (writeError) {
-      console.error('❌ [useMintPack] Write contract error:', writeError);
+      debug.error('❌ [useMintPack] Write contract error:', writeError);
     }
   }, [writeError]);
 
@@ -44,7 +45,7 @@ export function useMintPack() {
   const queryBalancesFallback = async (toAddress: Address): Promise<readonly [bigint, bigint, bigint] | null> => {
     if (!publicClient) return null;
     
-    console.log('🔍 [useMintPack] Querying balances as fallback...');
+    debug.log('🔍 [useMintPack] Querying balances as fallback...');
     
     try {
       const balancePromises = Array.from({ length: 15 }, (_, i) => 
@@ -62,21 +63,21 @@ export function useMintPack() {
       balances.forEach((balance, id) => {
         if (balance && balance > BigInt(0)) {
           ownedCards.push(BigInt(id));
-          console.log(`  ✅ Card ${id}: balance = ${balance.toString()}`);
+          debug.log(`  ✅ Card ${id}: balance = ${balance.toString()}`);
         }
       });
 
       if (ownedCards.length >= 3) {
         // Take the last 3 (most recently minted)
         const recentCards = ownedCards.slice(-3) as [bigint, bigint, bigint];
-        console.log('✅ [useMintPack] Found cards via balance query:', recentCards.map(id => id.toString()));
+        debug.log('✅ [useMintPack] Found cards via balance query:', recentCards.map(id => id.toString()));
         return recentCards;
       }
 
-      console.warn('⚠️ [useMintPack] Not enough cards found in balance query:', ownedCards.length);
+      debug.warn('⚠️ [useMintPack] Not enough cards found in balance query:', ownedCards.length);
       return null;
     } catch (error) {
-      console.error('❌ [useMintPack] Balance query failed:', error);
+      debug.error('❌ [useMintPack] Balance query failed:', error);
       return null;
     }
   };
@@ -84,7 +85,7 @@ export function useMintPack() {
   // Extract card IDs from logs when tx confirms - with multiple fallbacks
   useEffect(() => {
     if (isSuccess && receipt && userAddress) {
-      console.log('🎫 [useMintPack] Transaction confirmed, parsing logs...', {
+      debug.log('🎫 [useMintPack] Transaction confirmed, parsing logs...', {
         logsCount: receipt.logs.length,
         packAddress: PACK1155_ADDRESS,
         userAddress,
@@ -107,7 +108,7 @@ export function useMintPack() {
               if (decoded.eventName === 'PackMinted') {
                 const ids = (decoded.args as any).ids as readonly [bigint, bigint, bigint];
 
-                console.log('✅ [useMintPack] PackMinted event found!', {
+                debug.log('✅ [useMintPack] PackMinted event found!', {
                   ids: ids.map(id => id.toString()),
                 });
 
@@ -127,9 +128,9 @@ export function useMintPack() {
             }
           }
         }
-        console.warn('⚠️ [useMintPack] PackMinted event not found, trying TransferBatch...');
+        debug.warn('⚠️ [useMintPack] PackMinted event not found, trying TransferBatch...');
       } catch (error) {
-        console.error('❌ [useMintPack] Error in PackMinted parsing:', error);
+        debug.error('❌ [useMintPack] Error in PackMinted parsing:', error);
       }
 
       // Strategy 2: Try TransferBatch event (ERC1155 standard event)
@@ -148,7 +149,7 @@ export function useMintPack() {
                 const ids = args.ids as readonly bigint[];
 
                 if (ids && ids.length === 3) {
-                  console.log('✅ [useMintPack] TransferBatch event found!', {
+                  debug.log('✅ [useMintPack] TransferBatch event found!', {
                     ids: ids.map(id => id.toString()),
                   });
 
@@ -169,15 +170,15 @@ export function useMintPack() {
             }
           }
         }
-        console.warn('⚠️ [useMintPack] TransferBatch event not found, falling back to balance query...');
+        debug.warn('⚠️ [useMintPack] TransferBatch event not found, falling back to balance query...');
       } catch (error) {
-        console.error('❌ [useMintPack] Error in TransferBatch parsing:', error);
+        debug.error('❌ [useMintPack] Error in TransferBatch parsing:', error);
       }
 
       // Strategy 3: Query balances directly (with retry)
       const attemptBalanceQuery = async (attempt: number = 0) => {
         if (attempt >= 3) {
-          console.error('❌ [useMintPack] All strategies failed after 3 attempts');
+          debug.error('❌ [useMintPack] All strategies failed after 3 attempts');
           return;
         }
 
@@ -201,7 +202,7 @@ export function useMintPack() {
           setPackTxHash(hash || null);
           setCurrentStep('triptych-display');
         } else if (attempt < 2) {
-          console.log(`⏳ [useMintPack] Retry ${attempt + 1}/3...`);
+          debug.log(`⏳ [useMintPack] Retry ${attempt + 1}/3...`);
           attemptBalanceQuery(attempt + 1);
         }
       };
@@ -211,14 +212,14 @@ export function useMintPack() {
   }, [isSuccess, receipt, hash, userAddress, publicClient, setTriptychIds, setPackTxHash, setCurrentStep]);
 
   const mintPack = (address: `0x${string}`) => {
-    console.log('🎫 [useMintPack] Minting pack', {
+    debug.log('🎫 [useMintPack] Minting pack', {
       to: address,
       contract: PACK1155_ADDRESS,
       price: price.toString(),
     });
     
     if (!PACK1155_ADDRESS) {
-      console.error('❌ [useMintPack] PACK1155_ADDRESS is empty!');
+      debug.error('❌ [useMintPack] PACK1155_ADDRESS is empty!');
       return;
     }
     
@@ -233,7 +234,7 @@ export function useMintPack() {
       gas: BigInt(500000), // Explicit gas limit to prevent OutOfGas
     };
     
-    console.log('[useMintPack] Submitting transaction with gas:', txParams.gas?.toString());
+    debug.log('[useMintPack] Submitting transaction with gas:', txParams.gas?.toString());
     
     writeContract(txParams);
   };

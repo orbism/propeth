@@ -5,6 +5,7 @@ import { useAccount, useSwitchChain } from 'wagmi';
 import { mainnet } from 'wagmi/chains';
 import { useAppStore } from '@/lib/store';
 import { PROMISE_CHAIN_ID } from '@/lib/env';
+import { debug } from '@/lib/debug';
 
 interface TokenCheckProps {
   onComplete: () => void;
@@ -24,7 +25,7 @@ export function TokenCheck({ onComplete }: TokenCheckProps) {
 
     const expectedChainId = PROMISE_CHAIN_ID || mainnet.id;
 
-    console.log('🎰 [TokenCheck] Starting check', {
+    debug.log('🎰 [TokenCheck] Starting check', {
       address,
       chain: chain?.name,
       chainId: chain?.id,
@@ -36,7 +37,7 @@ export function TokenCheck({ onComplete }: TokenCheckProps) {
       const chainName = expectedChainId === 1337 ? 'Local 8545' : 
                        expectedChainId === 11155111 ? 'Sepolia' : 
                        'Ethereum Mainnet';
-      console.warn(`⚠️  [TokenCheck] User not on ${chainName}, prompting switch`);
+      debug.warn(`⚠️  [TokenCheck] User not on ${chainName}, prompting switch`);
       setNeedsNetworkSwitch(true);
       setStatusMessage(`Please switch to ${chainName}`);
       setIsChecking(false);
@@ -48,16 +49,16 @@ export function TokenCheck({ onComplete }: TokenCheckProps) {
 
     const checkHoldings = async () => {
       try {
-        console.log('📡 [TokenCheck] Calling /api/holds', { address });
+        debug.log('📡 [TokenCheck] Calling /api/holds', { address });
         setStatusMessage('Checking with oracles...');
 
         const response = await fetch(`/api/holds?owner=${address}`);
         const data = await response.json();
 
-        console.log('📦 [TokenCheck] API response', data);
+        debug.log('📦 [TokenCheck] API response', data);
 
         if (!response.ok) {
-          console.error('❌ [TokenCheck] API error', data);
+          debug.error('❌ [TokenCheck] API error', data);
           setPromiseHolderStatus(false);
           setStatusMessage('Check failed, proceeding anyway...');
           setTimeout(() => setCurrentStep('mint-choice'), 1000);
@@ -65,7 +66,7 @@ export function TokenCheck({ onComplete }: TokenCheckProps) {
         }
 
         const hasPromise = data.holds === true;
-        console.log('✅ [TokenCheck] Holdings check complete', {
+        debug.log('✅ [TokenCheck] Holdings check complete', {
           holds: hasPromise,
           balance: data.balance,
           debug: data.debug,
@@ -74,14 +75,14 @@ export function TokenCheck({ onComplete }: TokenCheckProps) {
         setPromiseHolderStatus(hasPromise);
         if (data.ownedTokens && data.ownedTokens.length > 0) {
           setOwnedTokenIds(data.ownedTokens);
-          console.log('[TokenCheck] Stored owned token IDs:', data.ownedTokens);
+          debug.log('[TokenCheck] Stored owned token IDs:', data.ownedTokens);
         }
         setStatusMessage(hasPromise ? '✓ Found A Promise!' : 'No Promise found');
         setIsChecking(false);
 
         setTimeout(() => setCurrentStep('mint-choice'), 800);
       } catch (error: any) {
-        console.error('💥 [TokenCheck] Unexpected error', {
+        debug.error('💥 [TokenCheck] Unexpected error', {
           error: error.message,
           stack: error.stack,
         });
@@ -96,7 +97,7 @@ export function TokenCheck({ onComplete }: TokenCheckProps) {
 
   const handleSwitchNetwork = () => {
     const targetChainId = PROMISE_CHAIN_ID || mainnet.id;
-    console.log('🔄 [TokenCheck] User requested network switch', { targetChainId });
+    debug.log('🔄 [TokenCheck] User requested network switch', { targetChainId });
     if (switchChain) {
       switchChain({ chainId: targetChainId });
       alreadyHandledRef.current = false;

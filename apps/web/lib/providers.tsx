@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WagmiProvider } from 'wagmi';
 import { config } from './wagmi';
 import { ReactNode, useState } from 'react';
+import { debug } from './debug';
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient({
@@ -22,7 +23,7 @@ export function Providers({ children }: { children: ReactNode }) {
   if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
     (window as any).clearWagmiCache = () => {
       queryClient.clear();
-      console.log('✅ Wagmi cache cleared');
+      debug.log('✅ Wagmi cache cleared');
     };
   }
 

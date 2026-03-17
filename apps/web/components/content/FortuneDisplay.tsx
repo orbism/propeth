@@ -6,6 +6,7 @@ import { FortuneCard } from '../FortuneCard';
 import { RestartButton } from '../RestartButton';
 import { useAppStore } from '@/lib/store';
 import { FORTUNE721_ADDRESS } from '@/lib/contracts';
+import { debug } from '@/lib/debug';
 
 interface FortuneDisplayProps {
   tokenId: string;
@@ -67,7 +68,7 @@ export function FortuneDisplay({ tokenId }: FortuneDisplayProps) {
       };
       img.src = url;
     } catch (error) {
-      console.error('Failed to download PNG:', error);
+      debug.error('Failed to download PNG:', error);
     }
   };
 
